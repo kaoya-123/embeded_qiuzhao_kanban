@@ -330,16 +330,19 @@ py src/audit_completeness.py
 
 ### 首次搭建（拿到手 10 分钟跑通）
 
-#### 第 1 步：复制飞书多维表格模板
-> 飞书多维表格模板：https://j0pbq4vb3lh.feishu.cn/wiki/Niv3we4Ldiw56LkEWV2cLuCynvc
->
-> 打开链接 → 申请**阅读权限**（我会通过）→ 点击右上角「...」→ **复制此表格**到你自己的飞书空间。
-> 复制后就有了你自己的副本，随便改不影响模板。
->
-> 复制后会得到你自己的多维表格链接，格式为：
-> `https://xxx.feishu.cn/base/XXXXXXXXX?table=...`
->
-> 记住 `base/` 后面的那串 `XXXXXXXXX`，这就是 `FEISHU_APP_TOKEN`。
+#### 第 1 步：复制飞书多维表格模板到你自己空间
+
+飞书多维表格模板：https://j0pbq4vb3lh.feishu.cn/wiki/Niv3we4Ldiw56LkEWV2cLuCynvc
+
+打开链接 → 申请**阅读权限**（我会通过）→ 点击右上角「...」→ **复制此表格**到你自己的飞书空间。复制后就得到了你自己的副本，里面有建好的两张子表和全部字段选项。
+
+**⚠️ 重要：复制完成后，打开你副本的链接，记下 `base/` 后面的那串 ID。** 
+
+比如你的副本链接是：
+```
+https://j0pbq4vb3lh.feishu.cn/base/LiXxXxXxX?table=tblXXXX
+```
+那 `LiXxXxXxX` 就是你的 `FEISHU_APP_TOKEN`，马上第 3 步要用。
 
 #### 第 2 步：创建飞书自建应用
 1. 打开 https://open.feishu.cn/app → 创建企业自建应用
