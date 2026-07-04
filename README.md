@@ -165,12 +165,11 @@
 
 ### 第 1 步：复制飞书多维表格模板
 
-> 飞书多维表格模板链接：**「[模板链接待提供](https://github.com/kaoya-123/embeded_job_rader)」**
+> 飞书多维表格模板：[点此打开](https://j0pbq4vb3lh.feishu.cn/wiki/Niv3we4Ldiw56LkEWV2cLuCynvc)
 >
-> 打开链接 → 点击右上角「...」→ **复制此表格** → 复制到你的飞书空间。
+> 打开后申请**阅读权限**（我会通过），然后点击右上角「...」→ **复制此表格**到你的飞书空间。
 >
-> 复制后你会得到自己的表格链接，格式为：
-> `https://xxx.feishu.cn/base/XXXXXXXXX?table=...`
+> 复制后得到自己的表格链接，格式为 `https://xxx.feishu.cn/base/XXXXXXXXX?table=...`
 >
 > **记下 `base/` 后面的那串 `XXXXXXXXX`**，这就是 `FEISHU_APP_TOKEN`。
 
