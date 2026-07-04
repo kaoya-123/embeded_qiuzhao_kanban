@@ -29,7 +29,7 @@
 
 > 💡 打开 `http://localhost:8765` 后你会看到以下模块：
 
-![image-20260704105317076](C:\Users\B1804\AppData\Roaming\Typora\typora-user-images\image-20260704105317076.png)
+![看板截图](assets/image-20260704105317076.png)
 
 ### 顶部 KPI 卡片
 
@@ -504,4 +504,4 @@ MIT License — 随便用、改、分发。
 
 **当然，如果你有疑惑想和学长交流，也可以找我（备注来意）：**
 
-![微信](D:\CEO的副业呀\烤鸭嵌入式\3、打印版面经制作\5、宣传资料\20250406第二版宣传\微信.png)
+![微信](D:\AI学习\embedded-job-radar\assets\微信.png)
