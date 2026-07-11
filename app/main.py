@@ -13,6 +13,7 @@ from app import bus
 from app.routers import dashboard, status, config
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
+PROJECT_DIR = os.path.join(os.path.dirname(__file__), "..")
 
 
 @asynccontextmanager
@@ -26,7 +27,6 @@ app = FastAPI(title="嵌入式校招看板", lifespan=lifespan)
 app.include_router(dashboard.router)
 app.include_router(status.router)
 app.include_router(config.router)
-app.include_router(config.router)
 
 
 @app.get("/")
@@ -34,6 +34,8 @@ def index():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
-# 静态资源（如后续拆分 CSS/JS/图片时用）
+# 静态资源
 if os.path.isdir(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+if os.path.isdir(os.path.join(PROJECT_DIR, "assets")):
+    app.mount("/assets", StaticFiles(directory=os.path.join(PROJECT_DIR, "assets")), name="assets")
