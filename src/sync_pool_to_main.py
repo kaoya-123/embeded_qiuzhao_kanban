@@ -77,6 +77,31 @@ def url_val(v):
     return None
 
 
+def get_field_map(table_id):
+    """拉取主表真实字段，返回 {字段名: 字段ID}。
+
+    只写真实存在的字段，避免把数据写到不存在的字段ID导致整批失败。
+    """
+    data = feishu_get(f"/bitable/v1/apps/{APP_TOKEN}/tables/{table_id}/fields", page_size=200)
+    out = {}
+    for item in data.get("items", []):
+        name = item.get("field_name")
+        fid = item.get("field_id")
+        if name and fid:
+            out[name] = fid
+    return out
+
+
+def _to_id_fields(patch, field_map):
+    """把 {中文字段名: 值} 转成 {字段ID: 值}，丢弃主表里不存在的字段。"""
+    out = {}
+    for name, val in patch.items():
+        fid = field_map.get(name)
+        if fid:
+            out[fid] = val
+    return out
+
+
 def _main_map(main_recs):
     out = {}
     for r in main_recs:
@@ -86,7 +111,7 @@ def _main_map(main_recs):
     return out
 
 
-def build_updates(pool_recs, main_recs):
+def build_updates(pool_recs, main_recs, field_map):
     main_map = _main_map(main_recs)
     eligible = []
     for r in pool_recs:
@@ -134,31 +159,88 @@ def build_updates(pool_recs, main_recs):
             patch["信息核验状态"] = "已核验"
 
         if patch:
-            FIELD_MAP = {
-                "JD原文": "fldy5mAUCl",
-                "岗位开放状态": "fldSljYGAi",
-                "投递链接": "fldPk8w3Sg",
-                "最近核验时间": "fldoxBZwzy",
-                "秋招岗位": "fldYgyTfok",
-                "信息核验状态": "fldkpVp82j",
-            }
-            id_patch = {FIELD_MAP.get(k, k): v for k, v in patch.items()}
-            updates.append({"record_id": rid, "fields": id_patch})
+            id_patch = _to_id_fields(patch, field_map)
+            if id_patch:
+                updates.append({"record_id": rid, "fields": id_patch})
     return updates
+
+
+def build_creates(pool_recs, main_recs, field_map):
+    """机会池里主表还没有的公司，够格的自动新建到主表。
+
+    只建 A 档：发现类型=嵌入式岗位开放 且 可信度=高，且岗位仍开放。
+    新建行标记 信息核验状态=待核验，意愿等需人工判断的字段留空。
+    """
+    main_map = _main_map(main_recs)
+    new_eligible = []
+    for r in pool_recs:
+        f = r.get("fields", {})
+        company = normalize_company(f.get("疑似公司"))
+        if not company or company in main_map:
+            continue
+        if f.get("发现类型") != "嵌入式岗位开放":
+            continue
+        if f.get("可信度") != "高":
+            continue
+        if f.get("岗位开放状态") not in ("已开放", "疑似开放"):
+            continue
+        new_eligible.append(r)
+
+    creates = []
+    for company, records in group_records_by_company(new_eligible).items():
+        merged = merge_pool_fields(records)
+        if not merged:
+            continue
+
+        fields = {"公司名称": company, "信息核验状态": "待核验"}
+
+        status = merged.get("岗位开放状态")
+        if status:
+            fields["岗位开放状态"] = status
+
+        link = url_val(merged.get("投递链接")) or url_val(merged.get("来源链接"))
+        if link:
+            fields["投递链接"] = link.get("link", "")
+
+        job = normalize_job_name(merged.get("岗位名称"))
+        if job and job != "待确认具体岗位" and not is_description_like_job(job):
+            fields["秋招岗位"] = job
+
+        jd = merged.get("JD原文")
+        if jd and len(str(jd)) > 20:
+            fields["JD原文"] = str(jd)[:2000]
+
+        check_time = merged.get("最近检测时间") or merged.get("发现时间")
+        if check_time:
+            fields["最近核验时间"] = check_time
+
+        id_fields = _to_id_fields(fields, field_map)
+        if id_fields.get(field_map.get("公司名称")):
+            creates.append({"fields": id_fields})
+    return creates
 
 
 def sync_pool_to_main():
     pool_recs = list_records(DISCOVERY_TABLE_ID)
     main_recs = list_records(MAIN_TABLE_ID)
-    updates = build_updates(pool_recs, main_recs)
+    field_map = get_field_map(MAIN_TABLE_ID)
 
+    # 先新建主表缺失的合格公司，再回填已有公司；两者都基于同一份 main 快照，互不重复。
+    creates = build_creates(pool_recs, main_recs, field_map)
+    if creates:
+        for i in range(0, len(creates), 500):
+            batch = creates[i:i+500]
+            feishu_post(f"/bitable/v1/apps/{APP_TOKEN}/tables/{MAIN_TABLE_ID}/records/batch_create",
+                        {"records": batch})
+
+    updates = build_updates(pool_recs, main_recs, field_map)
     if updates:
         for i in range(0, len(updates), 500):
             batch = updates[i:i+500]
             feishu_post(f"/bitable/v1/apps/{APP_TOKEN}/tables/{MAIN_TABLE_ID}/records/batch_update",
                         {"records": batch})
 
-    return len(updates)
+    return len(creates) + len(updates)
 
 
 if __name__ == "__main__":
