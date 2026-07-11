@@ -124,6 +124,8 @@ def friendly_error(exc: Exception) -> str:
         return "连不上飞书 open.feishu.cn：请检查网络出口、代理或 IP 白名单。"
     if "99991663" in text or "tenant_access_token" in text:
         return "飞书 App ID / App Secret 可能不正确，或应用尚未发布。"
+    if "99991661" in text or "Missing access token" in text:
+        return "飞书 App ID / App Secret 为空或不正确：请检查飞书开发者后台 → 凭证与基础信息，复制正确的 App ID 和 App Secret。"
     if isinstance(exc, _FeishuError):
         code = exc.code
         msg = exc.msg
@@ -181,7 +183,7 @@ def _token():
     r.raise_for_status()
     d = r.json()
     if d.get("code") != 0:
-        raise RuntimeError(d)
+        raise _FeishuError(d)
     return d["tenant_access_token"]
 
 
@@ -218,8 +220,8 @@ def _bitable_app_token():
         if node.get("obj_type") == "bitable" and node.get("obj_token"):
             _APP_TOKEN_CACHE[token] = node["obj_token"]
             return node["obj_token"]
-    except (_FeishuError, RuntimeError):
-        # wiki 查询失败（不是 wiki 节点 token 或没有 wiki 权限），
+    except Exception:
+        # wiki 查询失败（不是 wiki 节点 token、网络异常、或没有 wiki 权限），
         # 回退：把 token 原样当 app_token 使用（适配独立多维表格 /base/ 场景）。
         pass
     _APP_TOKEN_CACHE[token] = token
