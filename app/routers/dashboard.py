@@ -1,7 +1,4 @@
-"""看板数据接口：GET /api/dashboard 返回主表+机会池统计（结构与原 /data 一致）。
-
-关键：连不上飞书（如网络出口在境外、API 被墙）时，返回结构化 JSON + error 字段，
-绝不抛 500 让前端拿到 HTML 错误页导致 JSON.parse 崩溃。
+"""看板数据接口：GET /api/dashboard 返回主表统计。
 """
 from datetime import datetime
 
@@ -16,11 +13,10 @@ def _empty(error: str) -> dict:
     """飞书不可达时的降级空数据，结构与正常返回一致，附带 error 供前端提示。"""
     return {
         "main": {
-            "total_companies": 0, "total_progress": 0, "p0_count": 0, "progress": [],
+            "total_companies": 0,
             "exam_count": 0, "interview_count": 0, "offer_count": 0,
             "directions": [], "ctypes": [], "recent": [],
         },
-        "pool": {"total": 0, "rows": []},
         "now": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "error": error,
     }

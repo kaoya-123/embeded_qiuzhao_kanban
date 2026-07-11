@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app import bus
-from app.routers import dashboard, status, config, completion
+from app.routers import dashboard, status, config
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
 
@@ -26,7 +26,7 @@ app = FastAPI(title="嵌入式校招看板", lifespan=lifespan)
 app.include_router(dashboard.router)
 app.include_router(status.router)
 app.include_router(config.router)
-app.include_router(completion.router)
+app.include_router(config.router)
 
 
 @app.get("/")
