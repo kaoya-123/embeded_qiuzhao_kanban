@@ -365,6 +365,94 @@ def _profile_candidates(company: str, profile: dict, requested_fields: set[str])
     return out
 
 
+def merge_ai_profile_candidates(candidates: list[dict[str, Any]], path: str | os.PathLike | None = None, model: str = "") -> dict[str, Any]:
+    """把 AI 画像候选保存到本地画像库；不写飞书。"""
+    profile_path = Path(path) if path else PROFILE_PATH
+    existing = load_profiles(profile_path)
+    changed_companies = []
+    created = 0
+    field_changes = 0
+    skipped = []
+    now = datetime.now().strftime("%Y-%m-%d")
+
+    for cand in candidates or []:
+        company = normalize_company(cand.get("company"))
+        fields = cand.get("fields") or {}
+        if not company:
+            skipped.append({"company": "", "reason": "公司名为空"})
+            continue
+        before_exists = company in existing
+        base = dict(existing.get(company, {}))
+        total_changed = 0
+
+        incoming: dict[str, Any] = {}
+        for field in PROFILE_FIELDS:
+            if field not in WHITELIST:
+                continue
+            value = fields.get(field)
+            if is_empty_value(value):
+                continue
+            if field in {"嵌入式方向", "工作地点", "公司/行业类型", "细分类型"}:
+                vals = _as_list(value)
+                if vals:
+                    target = "公司所在地" if field == "工作地点" else field
+                    incoming[target] = vals
+            elif field == "公司简介":
+                text = str(value).strip()[:120]
+                if text:
+                    incoming[field] = text
+            elif field == "公司规模":
+                text = str(value).strip()
+                if text:
+                    incoming[field] = text
+        if not incoming:
+            skipped.append({"company": company, "reason": "没有可保存的白名单字段"})
+            continue
+
+        incoming["source"] = "ai_claude"
+        incoming["confidence"] = cand.get("confidence") if cand.get("confidence") in ("low", "medium", "high") else "medium"
+        incoming["updated_at"] = now
+        base, changed = _merge_profile(base, incoming)
+        total_changed += changed
+
+        if total_changed:
+            sources = base.get("sources") if isinstance(base.get("sources"), list) else []
+            for src in cand.get("sources") or []:
+                if isinstance(src, dict) and src not in sources:
+                    sources.append(src)
+            if sources:
+                base["sources"] = sources[:20]
+            reasoning = str(cand.get("reasoning") or "").strip()
+            if reasoning:
+                base["reasoning"] = reasoning[:500]
+            base["ai"] = {
+                "provider": "anthropic",
+                "model": model or cand.get("model") or "claude-opus-4-8",
+                "generated_at": datetime.now().isoformat(timespec="seconds"),
+            }
+            existing[company] = base
+            field_changes += total_changed
+            changed_companies.append(company)
+            if not before_exists:
+                created += 1
+        else:
+            skipped.append({"company": company, "reason": "本地画像已有等价或更完整字段，未覆盖"})
+
+    profile_path.parent.mkdir(parents=True, exist_ok=True)
+    profile_path.write_text(json.dumps(dict(sorted(existing.items())), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return {
+        "success": True,
+        "profile_path": str(profile_path),
+        "profiles_total": len(existing),
+        "profiles_created": created,
+        "profiles_changed": len(changed_companies),
+        "field_changes": field_changes,
+        "changed_companies": changed_companies[:80],
+        "skipped": skipped[:80],
+    }
+
+
+
 def build_completion_preview(main_recs: list[dict], pool_recs: list[dict], field_meta: dict[str, Any], requested_fields: list[str], include_curated=True, include_medium_risk=True, profiles: dict[str, dict] | None = None) -> dict:
     requested = set(requested_fields or default_requested_fields())
     changes_by_record: dict[str, dict] = {}

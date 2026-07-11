@@ -22,7 +22,14 @@ from main_table_completion import (  # noqa: E402
     build_apply_updates,
     build_completion_preview,
     default_requested_fields,
+    load_profiles,
+    merge_ai_profile_candidates,
     update_company_profiles_from_main,
+)
+from ai_company_profile import (  # noqa: E402
+    AIProfileError,
+    build_company_contexts,
+    generate_profile_candidates,
 )
 
 router = APIRouter(prefix="/api/completion", tags=["completion"])
@@ -37,6 +44,27 @@ class PreviewReq(BaseModel):
 
 class ApplyReq(BaseModel):
     plan_id: str
+    selected: list[dict[str, Any]] | None = None
+    confirm: bool = False
+
+
+class PublicMaterialReq(BaseModel):
+    company: str = ""
+    title: str = ""
+    url: str = ""
+    text: str = ""
+
+
+class AIPreviewReq(BaseModel):
+    companies: list[str] = Field(default_factory=list)
+    missing_only: bool = True
+    include_jd: bool = True
+    public_materials: list[PublicMaterialReq] = Field(default_factory=list)
+    fields: list[str] = Field(default_factory=default_requested_fields)
+
+
+class AIApplyLocalReq(BaseModel):
+    ai_plan_id: str
     selected: list[dict[str, Any]] | None = None
     confirm: bool = False
 
@@ -83,6 +111,89 @@ def update_profiles():
     """更新本地公司画像库，不写飞书主表。"""
     main_recs = feishu.list_records(feishu.MAIN_TABLE_ID)
     result = update_company_profiles_from_main(main_recs)
+    return result
+
+
+@router.post("/profiles/ai/preview")
+def ai_preview(req: AIPreviewReq):
+    """AI 生成公司画像候选：只预览，不写本地画像库，不写飞书。"""
+    cfg = feishu.get_config()
+    try:
+        main_recs = feishu.list_records(feishu.MAIN_TABLE_ID)
+        materials = [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in req.public_materials]
+        contexts = build_company_contexts(
+            main_recs,
+            companies=req.companies,
+            public_materials=materials,
+            profiles=load_profiles(),
+            fields=req.fields,
+            missing_only=req.missing_only,
+            include_jd=req.include_jd,
+        )
+        result = generate_profile_candidates(
+            contexts,
+            api_key=cfg.get("ANTHROPIC_API_KEY", ""),
+            model=cfg.get("ANTHROPIC_MODEL", "") or "claude-opus-4-8",
+        )
+    except AIProfileError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        return {"success": False, "error": feishu.friendly_error(e)}
+
+    ai_plan_id = "aip_" + uuid.uuid4().hex[:12]
+    candidates = result.get("candidates", [])
+    _set_plan(ai_plan_id, {
+        "created_at": time.time(),
+        "type": "ai_profile",
+        "candidates": candidates,
+        "model": result.get("model", cfg.get("ANTHROPIC_MODEL", "") or "claude-opus-4-8"),
+    })
+    return {
+        "success": True,
+        "ai_plan_id": ai_plan_id,
+        "summary": {
+            "companies_requested": len(contexts),
+            "companies_generated": len(candidates),
+            "field_candidates": sum(len(c.get("fields", {})) for c in candidates),
+            "warnings": len(result.get("warnings", [])),
+        },
+        "candidates": candidates,
+        "warnings": result.get("warnings", []),
+        "model": result.get("model", cfg.get("ANTHROPIC_MODEL", "") or "claude-opus-4-8"),
+    }
+
+
+@router.post("/profiles/ai/apply-local")
+def ai_apply_local(req: AIApplyLocalReq):
+    """把已预览的 AI 候选保存到本地画像库；不写飞书。"""
+    if not req.confirm:
+        return {"success": False, "error": "必须 confirm=true 才会保存到本地画像库"}
+    plan = _plans().get(req.ai_plan_id)
+    if not plan or plan.get("type") != "ai_profile":
+        return {"success": False, "error": "AI 画像计划不存在或已过期，请重新生成"}
+
+    candidates = plan.get("candidates", [])
+    if req.selected:
+        selected_fields = {}
+        for item in req.selected:
+            company = item.get("company")
+            fields = set(item.get("fields") or [])
+            if company and fields:
+                selected_fields[company] = fields
+        filtered = []
+        for cand in candidates:
+            fields = selected_fields.get(cand.get("company"))
+            if not fields:
+                continue
+            kept = {k: v for k, v in (cand.get("fields") or {}).items() if k in fields}
+            if kept:
+                item = dict(cand)
+                item["fields"] = kept
+                filtered.append(item)
+        candidates = filtered
+
+    result = merge_ai_profile_candidates(candidates, model=plan.get("model", ""))
+    result["next_step"] = "请运行主表补齐预览，确认后再写入飞书主表。"
     return result
 
 

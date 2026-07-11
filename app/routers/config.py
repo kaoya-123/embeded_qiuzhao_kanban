@@ -16,6 +16,8 @@ class FeishuConfig(BaseModel):
     feishu_app_token: str = ""
     main_table_id: str = ""
     discovery_table_id: str = ""
+    anthropic_api_key: str = ""
+    anthropic_model: str = ""
 
 
 class TestConfig(FeishuConfig):
@@ -45,6 +47,8 @@ def get_config():
             "feishu_app_token": cfg.get("FEISHU_APP_TOKEN", ""),
             "main_table_id": cfg.get("MAIN_TABLE_ID", ""),
             "discovery_table_id": cfg.get("DISCOVERY_TABLE_ID", ""),
+            "anthropic_api_key_masked": _masked(cfg.get("ANTHROPIC_API_KEY", "")),
+            "anthropic_model": cfg.get("ANTHROPIC_MODEL", "") or "claude-opus-4-8",
         },
     }
 
@@ -58,6 +62,8 @@ def save_config(cfg: FeishuConfig):
         "FEISHU_APP_TOKEN": cfg.feishu_app_token.strip() or current.get("FEISHU_APP_TOKEN", ""),
         "MAIN_TABLE_ID": cfg.main_table_id.strip() or current.get("MAIN_TABLE_ID", ""),
         "DISCOVERY_TABLE_ID": cfg.discovery_table_id.strip() or current.get("DISCOVERY_TABLE_ID", ""),
+        "ANTHROPIC_API_KEY": cfg.anthropic_api_key.strip() or current.get("ANTHROPIC_API_KEY", ""),
+        "ANTHROPIC_MODEL": cfg.anthropic_model.strip() or current.get("ANTHROPIC_MODEL", "") or "claude-opus-4-8",
     }
     feishu.save_config(payload)
     state.set_cache({})
@@ -73,6 +79,8 @@ def test_config(cfg: TestConfig):
         "FEISHU_APP_TOKEN": cfg.feishu_app_token.strip() or current.get("FEISHU_APP_TOKEN", ""),
         "MAIN_TABLE_ID": cfg.main_table_id.strip() or current.get("MAIN_TABLE_ID", ""),
         "DISCOVERY_TABLE_ID": cfg.discovery_table_id.strip() or current.get("DISCOVERY_TABLE_ID", ""),
+        "ANTHROPIC_API_KEY": cfg.anthropic_api_key.strip() or current.get("ANTHROPIC_API_KEY", ""),
+        "ANTHROPIC_MODEL": cfg.anthropic_model.strip() or current.get("ANTHROPIC_MODEL", "") or "claude-opus-4-8",
     }
     try:
         feishu.test_config(payload)

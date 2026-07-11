@@ -44,7 +44,15 @@ except Exception:
     audit_and_dedup = lambda: 0
 
 ENV_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
-CONFIG_KEYS = ["FEISHU_APP_ID", "FEISHU_APP_SECRET", "FEISHU_APP_TOKEN", "MAIN_TABLE_ID", "DISCOVERY_TABLE_ID"]
+CONFIG_KEYS = [
+    "FEISHU_APP_ID",
+    "FEISHU_APP_SECRET",
+    "FEISHU_APP_TOKEN",
+    "MAIN_TABLE_ID",
+    "DISCOVERY_TABLE_ID",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_MODEL",
+]
 REQUIRED_CONFIG_KEYS = ["FEISHU_APP_ID", "FEISHU_APP_SECRET", "FEISHU_APP_TOKEN", "MAIN_TABLE_ID"]
 
 load_dotenv(ENV_PATH)
@@ -74,7 +82,7 @@ def get_config() -> dict:
         "MAIN_TABLE_ID": "MAIN_TABLE_ID",
         "DISCOVERY_TABLE_ID": "DISCOVERY_TABLE_ID",
     }
-    return {k: globals().get(names[k]) or os.getenv(k) or "" for k in CONFIG_KEYS}
+    return {k: (globals().get(names[k]) if k in names else None) or os.getenv(k) or "" for k in CONFIG_KEYS}
 
 
 def save_config(cfg: dict) -> None:

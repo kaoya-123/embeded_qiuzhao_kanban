@@ -14,6 +14,7 @@ from main_table_completion import (  # noqa: E402
     build_completion_preview,
     default_requested_fields,
     load_profiles,
+    merge_ai_profile_candidates,
     update_company_profiles_from_main,
 )
 
@@ -156,6 +157,47 @@ class MainTableCompletionTest(unittest.TestCase):
             self.assertIn("大疆", profiles)
             self.assertTrue(profiles["大疆"].get("公司所在地"))
             self.assertTrue(profiles["大疆"].get("嵌入式方向"))
+    def test_merge_ai_profile_candidates_writes_local_profile_json(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, "profiles.json")
+            result = merge_ai_profile_candidates([
+                {
+                    "company": "联合飞机",
+                    "fields": {
+                        "嵌入式方向": ["BSP", "飞控"],
+                        "工作地点": ["深圳"],
+                        "公司/行业类型": ["低空经济"],
+                        "细分类型": ["无人机"],
+                        "公司规模": "1000-5000人",
+                        "公司简介": "低空经济飞行器企业。",
+                    },
+                    "confidence": "medium",
+                    "sources": [{"type": "main_table", "field": "JD原文", "record_id": "m1"}],
+                    "reasoning": "JD 提到飞控与 BSP。",
+                }
+            ], path=path, model="claude-opus-4-8")
+            self.assertTrue(result["success"])
+            self.assertEqual(result["profiles_created"], 1)
+            profiles = load_profiles(path)
+            self.assertEqual(profiles["联合飞机"]["嵌入式方向"], ["BSP", "飞控"])
+            self.assertEqual(profiles["联合飞机"]["公司所在地"], ["深圳"])
+            self.assertEqual(profiles["联合飞机"]["source"], "ai_claude")
+            self.assertEqual(profiles["联合飞机"]["ai"]["model"], "claude-opus-4-8")
+            self.assertEqual(profiles["联合飞机"]["sources"][0]["field"], "JD原文")
+
+    def test_merge_ai_profile_candidates_does_not_overwrite_text_fields(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = os.path.join(td, "profiles.json")
+            merge_ai_profile_candidates([
+                {"company": "联合飞机", "fields": {"公司规模": "1000人", "公司简介": "旧简介", "嵌入式方向": ["BSP"]}}
+            ], path=path)
+            merge_ai_profile_candidates([
+                {"company": "联合飞机", "fields": {"公司规模": "9999人", "公司简介": "新简介", "嵌入式方向": ["飞控"]}}
+            ], path=path)
+            profiles = load_profiles(path)
+            self.assertEqual(profiles["联合飞机"]["公司规模"], "1000人")
+            self.assertEqual(profiles["联合飞机"]["公司简介"], "旧简介")
+            self.assertEqual(profiles["联合飞机"]["嵌入式方向"], ["BSP", "飞控"])
 
 
 if __name__ == "__main__":
