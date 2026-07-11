@@ -46,29 +46,42 @@ def get_config():
     }
 
 
-@router.post("")
-def save_config(cfg: FeishuConfig):
+def _build_payload(cfg: FeishuConfig) -> dict:
+    """把表单输入归一化成配置。
+
+    目标：用户只需粘贴一条飞书链接到 App Token 框，其余自动解析。
+    - App Token：从 /base/ 或 /wiki/ 链接里提取 token（纯 token 原样保留）。
+    - Table ID：优先用用户单独填写的；否则从粘贴的链接 ?table= 里解析；
+      两者都没有时才回退到已保存的旧值（避免换表时被旧值覆盖）。
+    """
     current = feishu.get_config()
-    payload = {
+    raw_token = cfg.feishu_app_token.strip()
+    app_token = feishu.parse_app_token(raw_token) or current.get("FEISHU_APP_TOKEN", "")
+
+    table_id = feishu.parse_table_id(cfg.main_table_id.strip())
+    if not table_id and raw_token:
+        table_id = feishu.parse_table_id(raw_token)
+    if not table_id:
+        table_id = current.get("MAIN_TABLE_ID", "")
+
+    return {
         "FEISHU_APP_ID": cfg.feishu_app_id.strip() or current.get("FEISHU_APP_ID", ""),
         "FEISHU_APP_SECRET": cfg.feishu_app_secret.strip() or current.get("FEISHU_APP_SECRET", ""),
-        "FEISHU_APP_TOKEN": cfg.feishu_app_token.strip() or current.get("FEISHU_APP_TOKEN", ""),
-        "MAIN_TABLE_ID": cfg.main_table_id.strip() or current.get("MAIN_TABLE_ID", ""),
+        "FEISHU_APP_TOKEN": app_token,
+        "MAIN_TABLE_ID": table_id,
     }
-    feishu.save_config(payload)
+
+
+@router.post("")
+def save_config(cfg: FeishuConfig):
+    feishu.save_config(_build_payload(cfg))
     state.set_cache({})
     return {"success": True, "message": "飞书配置已保存"}
 
 
 @router.post("/test")
 def test_config(cfg: TestConfig):
-    current = feishu.get_config()
-    payload = {
-        "FEISHU_APP_ID": cfg.feishu_app_id.strip() or current.get("FEISHU_APP_ID", ""),
-        "FEISHU_APP_SECRET": cfg.feishu_app_secret.strip() or current.get("FEISHU_APP_SECRET", ""),
-        "FEISHU_APP_TOKEN": cfg.feishu_app_token.strip() or current.get("FEISHU_APP_TOKEN", ""),
-        "MAIN_TABLE_ID": cfg.main_table_id.strip() or current.get("MAIN_TABLE_ID", ""),
-    }
+    payload = _build_payload(cfg)
     try:
         feishu.test_config(payload)
         return {"success": True, "message": "连接成功：已能读取飞书主表"}

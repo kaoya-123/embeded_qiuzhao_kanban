@@ -1,7 +1,9 @@
 """飞书 API 封装 + 看板数据读取。"""
 import os
+import re
 from datetime import datetime
 from collections import Counter
+from urllib.parse import unquote
 
 import requests
 from dotenv import load_dotenv
@@ -29,6 +31,40 @@ API = "https://open.feishu.cn/open-apis"
 _APP_TOKEN_CACHE = {}
 
 
+def parse_app_token(value: str) -> str:
+    """从用户输入里提取 app_token / wiki 节点 token。
+
+    支持：
+    - 独立多维表格链接 https://xxx.feishu.cn/base/<token>?...
+    - 知识库链接        https://xxx.feishu.cn/wiki/<token>?...
+    - 直接粘贴的纯 token
+    """
+    value = (value or "").strip()
+    if not value:
+        return ""
+    m = re.search(r"/(?:base|wiki)/([^/?#]+)", value)
+    if m:
+        return m.group(1)
+    return value
+
+
+def parse_table_id(value: str) -> str:
+    """从用户输入里提取多维表格 table_id（tbl 开头）。
+
+    支持从链接的 ?table=<id> 参数解析，或直接粘贴的纯 table_id。
+    """
+    value = (value or "").strip()
+    if not value:
+        return ""
+    m = re.search(r"[?&]table=([^&#]+)", value)
+    if m:
+        return unquote(m.group(1))
+    # 看起来是链接但没带 table 参数：无法解析出 table_id
+    if "://" in value or "/" in value:
+        return ""
+    return value
+
+
 def _apply_config(cfg: dict) -> None:
     global APP_ID, APP_SECRET, APP_TOKEN, MAIN_TABLE_ID
     APP_ID = cfg.get("FEISHU_APP_ID") or ""
@@ -51,7 +87,16 @@ def get_config() -> dict:
 def save_config(cfg: dict) -> None:
     """保存飞书配置到 .env，并立即更新当前进程内配置。"""
     merged = get_config()
-    merged.update({k: (cfg.get(k) or "").strip() for k in CONFIG_KEYS})
+    incoming = {k: (cfg.get(k) or "").strip() for k in CONFIG_KEYS}
+    # 兜底：即使前端未解析，服务端也把 URL 归一化成纯 token / table_id。
+    if incoming.get("FEISHU_APP_TOKEN"):
+        incoming["FEISHU_APP_TOKEN"] = parse_app_token(incoming["FEISHU_APP_TOKEN"])
+    raw_token = (cfg.get("FEISHU_APP_TOKEN") or "").strip()
+    if not incoming.get("MAIN_TABLE_ID") and raw_token:
+        incoming["MAIN_TABLE_ID"] = parse_table_id(raw_token)
+    if incoming.get("MAIN_TABLE_ID"):
+        incoming["MAIN_TABLE_ID"] = parse_table_id(incoming["MAIN_TABLE_ID"])
+    merged.update(incoming)
     old_lines = []
     if os.path.exists(ENV_PATH):
         with open(ENV_PATH, "r", encoding="utf-8") as f:
