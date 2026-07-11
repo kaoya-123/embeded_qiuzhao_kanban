@@ -193,10 +193,16 @@ def _feishu(path, method="GET", payload=None):
         r = requests.get(f"{API}{path}", headers=h, params=payload or {}, timeout=30)
     else:
         r = requests.post(f"{API}{path}", headers=h, json=payload, timeout=30)
-    r.raise_for_status()
-    d = r.json()
+    d = {}
+    try:
+        d = r.json()
+    except Exception:
+        pass
+    # 优先用飞书业务错误码（比 HTTP 状态码更有诊断价值）
     if d.get("code") != 0:
         raise _FeishuError(d)
+    # 飞书没给错误码但 HTTP 状态异常，让 requests 抛出
+    r.raise_for_status()
     return d.get("data", {})
 
 
