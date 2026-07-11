@@ -196,12 +196,6 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
     <div class="nav-sec">工作台</div>
     <a data-page="page-dashboard" onclick="navTo(this)" class="active">看板总览</a>
     <a data-page="page-config" onclick="navTo(this)">飞书配置</a>
-    <div class="nav-sec">关注博主</div>
-    <div class="social-cards">
-      <div class="scard" onclick="showQRModal()" title="点击查看公众号二维码"><div class="scard-avatar wx">微</div><div class="scard-text">飞出金陵的烤鸭<span>公众号：飞出金陵的烤鸭</span></div></div>
-      <a class="scard" href="https://xhslink.com/m/6DrSNFj2WMy" target="_blank" rel="noreferrer"><div class="scard-avatar xhs">红</div><div class="scard-text">烤鸭嵌入式小红书<span>主页一</span></div></a>
-      <a class="scard" href="https://xhslink.com/m/3ZvXgtjZ3dB" target="_blank" rel="noreferrer"><div class="scard-avatar xhs">红</div><div class="scard-text">烤鸭嵌入式小红书<span>主页二</span></div></a>
-    </div>
     <div class="sidebar-foot">
       <div class="conn" id="conn-state"><span class="pulse" id="conn-pulse"></span><span id="conn-text">检查配置…</span></div>
       <div style="margin-top:6px">按 <kbd>&#8984;</kbd><kbd>K</kbd> 打开命令面板</div>
@@ -256,6 +250,21 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
             <button class="btn" onclick="loadConfigStatus(false)">重新读取</button>
           </div>
           <div class="help" style="margin-top:12px">常见错误：App Secret 填错、飞书应用未发布、bitable 权限未开通、IP 白名单、网络连不上 open.feishu.cn。</div>
+          <div class="nav-sec" style="padding-left:0">关注博主</div>
+          <div class="scard-row" style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap">
+            <div class="scard-box" onclick="showQRModal()" title="点击查看公众号二维码" style="flex:1;min-width:180px;display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow);cursor:pointer;transition:.16s var(--ease)">
+              <div class="scard-icon" style="width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:18px;font-weight:800;flex:0 0 auto;background:linear-gradient(135deg,#07c160,#06ad56);color:#fff">W</div>
+              <div><b style="display:block;font-size:13px;color:var(--ink)">飞出金陵的烤鸭</b><span style="font-size:11px;color:var(--sub)">公众号</span></div>
+            </div>
+            <a class="scard-box" href="https://xhslink.com/m/6DrSNFj2WMy" target="_blank" rel="noreferrer" style="flex:1;min-width:180px;display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow);cursor:pointer;transition:.16s var(--ease);text-decoration:none;color:inherit">
+              <div class="scard-icon" style="width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:18px;font-weight:800;flex:0 0 auto;background:linear-gradient(135deg,#ff2442,#fe3666);color:#fff">R</div>
+              <div><b style="display:block;font-size:13px;color:var(--ink)">烤鸭嵌入式</b><span style="font-size:11px;color:var(--sub)">小红书</span></div>
+            </a>
+            <a class="scard-box" href="https://xhslink.com/m/3ZvXgtjZ3dB" target="_blank" rel="noreferrer" style="flex:1;min-width:180px;display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);box-shadow:var(--shadow);cursor:pointer;transition:.16s var(--ease);text-decoration:none;color:inherit">
+              <div class="scard-icon" style="width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:18px;font-weight:800;flex:0 0 auto;background:linear-gradient(135deg,#ff2442,#fe3666);color:#fff">R</div>
+              <div><b style="display:block;font-size:13px;color:var(--ink)">烤鸭嵌入式</b><span style="font-size:11px;color:var(--sub)">小红书</span></div>
+            </a>
+          </div>
         </div>
       </div>
     </section>
