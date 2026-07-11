@@ -183,7 +183,10 @@ def get_main_stats():
              "apply_date": f.get("投递时间", ""),
              "exam_date": f.get("机考时间", ""),
              "interview1": f.get("一面", ""),
-             "interview2": f.get("二面", "")}
+             "interview2": f.get("二面", ""),
+             "interview3": f.get("三面", ""),
+             "warm": f.get("保温", ""),
+             "result": f.get("结果", "")}
             for f in recent
         ]
     }
