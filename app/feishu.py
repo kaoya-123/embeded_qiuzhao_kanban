@@ -31,6 +31,95 @@ API = "https://open.feishu.cn/open-apis"
 _APP_TOKEN_CACHE = {}
 
 
+# ── 飞书业务错误 ──────────────────────────────────────
+class _FeishuError(RuntimeError):
+    """飞书 API 业务错误，携带 code / msg，供 friendly_error() 精确诊断。"""
+    def __init__(self, d: dict):
+        self.code = d.get("code", 0)
+        self.msg = d.get("msg", "")
+        super().__init__(f"[{self.code}] {self.msg}")
+
+
+def friendly_error(exc: Exception) -> str:
+    """将飞书异常转成对用户友好的中文提示。
+
+    所有地方（配置测试 / 看板数据读取）统一走这个函数，保证提示一致。
+    """
+    # ── 1. 飞书业务错误（优先按错误码精确提示）──────────
+    if isinstance(exc, _FeishuError):
+        code = exc.code
+        msg = exc.msg
+        # 多维表格
+        if code in (99991400, 232010, 232011):
+            return (
+                f"应用没有「多维表格」权限："
+                f"请在飞书开发者后台 → 权限管理中开通 bitable 相关权限。\n"
+                f"详情：[{code}] {msg}")
+        if code in (1254300, 1254003, 1254309, 1254310):
+            return (
+                f"应用没有该多维表格的访问权限："
+                f"请把多维表格分享给应用（表格页面 → 添加协作者 → 搜索并添加你的飞书应用）。\n"
+                f"详情：[{code}] {msg}")
+        if code == 1254100:
+            return f"多维表格不存在或已被删除。\n详情：[{code}] {msg}"
+        if code == 1254002:
+            return f"Table ID 不存在，或应用没有该子表的查看权限。\n详情：[{code}] {msg}"
+        if code == 1254041:
+            return f"Table ID「{MAIN_TABLE_ID}」在该多维表格中不存在。\n详情：[{code}] {msg}"
+        # 知识库 / wiki
+        if code == 99991403:
+            return (
+                f"知识库访问被拒：应用没有该 wiki 节点的查看权限。"
+                f"请把应用加入知识库空间成员。\n"
+                f"详情：[{code}] {msg}")
+        if code == 91403:
+            return (
+                f"多维表格访问被拒：应用没有该多维表格或子表的查看权限。"
+                f"请把应用添加到多维表格的协作者中。\n"
+                f"详情：[{code}] {msg}")
+        if code in (99991401, 230002):
+            return f"wiki 节点不存在或 token 不正确。\n详情：[{code}] {msg}"
+        if code in (230001, 99991408):
+            return (
+                f"应用没有「知识库」权限："
+                f"请在飞书开发者后台 → 权限管理中开通 wiki 相关权限。\n"
+                f"详情：[{code}] {msg}")
+        # 鉴权
+        if code == 99991661:
+            return (
+                f"飞书 App ID 或 App Secret 不正确："
+                f"请检查飞书开发者后台 → 凭证与基础信息，复制正确的凭证。\n"
+                f"详情：[{code}] {msg}")
+        if code in (99991663, 99991667, 10003, 10012):
+            return (
+                f"飞书 App ID / App Secret 可能不正确，或应用已被禁用。"
+                f"请检查飞书开发者后台。\n"
+                f"详情：[{code}] {msg}")
+        return f"飞书 API 错误 [{code}]：{msg}"
+
+    # ── 2. 网络 / 代理问题 ──────────────────────────
+    text = str(exc)
+    if any(k in text for k in ("SSLError", "ConnectionError", "10054", "Max retries",
+                                 "EOF", "timed out", "Timeout", "Connection refused")):
+        return "连不上飞书 open.feishu.cn：请检查网络出口、代理或 IP 白名单。"
+
+    # ── 3. HTTP 层面异常（raise_for_status 抛出的，没有飞书业务 code）───
+    if isinstance(exc, requests.HTTPError):
+        resp_text = getattr(exc.response, "text", "") or text
+        try:
+            body = exc.response.json() if exc.response is not None else {}
+        except Exception:
+            body = {}
+        if isinstance(body, dict) and body.get("code"):
+            # 里面有飞书业务 code，走一遍 _FeishuError
+            return friendly_error(_FeishuError(body))
+        return f"飞书 API 请求失败（HTTP {exc.response.status_code if exc.response is not None else '?'}）：{resp_text[:240]}"
+
+    # ── 4. 兜底 ──────────────────────────────────
+    return f"飞书连接失败：{text[:220]}"
+
+
+# ── 配置管理 ────────────────────────────────────────
 def parse_app_token(value: str) -> str:
     """从用户输入里提取 app_token / wiki 节点 token。
 
@@ -118,42 +207,6 @@ def save_config(cfg: dict) -> None:
     _apply_config(merged)
 
 
-def friendly_error(exc: Exception) -> str:
-    text = str(exc)
-    if any(k in text for k in ("SSLError", "ConnectionError", "10054", "Max retries", "EOF", "timed out", "Timeout")):
-        return "连不上飞书 open.feishu.cn：请检查网络出口、代理或 IP 白名单。"
-    if "99991663" in text or "tenant_access_token" in text:
-        return "飞书 App ID / App Secret 可能不正确，或应用尚未发布。"
-    if "99991661" in text or "Missing access token" in text:
-        return "飞书 App ID / App Secret 为空或不正确：请检查飞书开发者后台 → 凭证与基础信息，复制正确的 App ID 和 App Secret。"
-    if isinstance(exc, _FeishuError):
-        code = exc.code
-        msg = exc.msg
-        # 权限相关错误码 — 飞书开放平台文档
-        if code in (99991400, 232010, 232011):
-            return f"应用没有「多维表格」权限：请在飞书开发者后台 → 权限管理中开通 bitable 相关权限。\n详情：[{code}] {msg}"
-        if code in (1254300, 1254003):
-            return f"多维表格未授权给应用：请把应用的「多维表格」分享给该应用（或在表格页面添加应用为协作者）。\n详情：[{code}] {msg}"
-        if code == 1254100:
-            return f"多维表格不存在或已被删除。\n详情：[{code}] {msg}"
-        if code == 1254002:
-            return f"Table ID 不存在，或应用没有该子表的查看权限。\n详情：[{code}] {msg}"
-        if code == 1254041:
-            return f"Table ID「{MAIN_TABLE_ID}」在该多维表格中不存在，请检查链接里的 table= 参数是否正确。\n详情：[{code}] {msg}"
-        if code in (1254309, 1254310):
-            return f"应用没有该多维表格的访问权限：请在飞书多维表格页面 → 右上角「…」→ 更多设置 → 添加协作者，搜索并添加你的飞书应用。\n详情：[{code}] {msg}"
-        if code == 99991403:
-            return f"知识库访问被拒：应用没有该 wiki 节点的查看权限。请把应用加入知识库空间成员。\n详情：[{code}] {msg}"
-        if code in (99991401, 230002):
-            return f"wiki 节点不存在或 token 不正确。\n详情：[{code}] {msg}"
-        if code in (230001, 99991408):
-            return f"应用没有「知识库」权限：请在飞书开发者后台 → 权限管理中开通 wiki 相关权限。\n详情：[{code}] {msg}"
-        if code in (10003, 10012, 99991667):
-            return f"飞书 token 已过期或应用被禁用，请检查飞书开发者后台。\n详情：[{code}] {msg}"
-        return f"飞书 API 错误 [{code}]：{msg}"
-    return f"飞书连接失败：{text[:220]}"
-
-
 def test_config(cfg: dict) -> bool:
     old = get_config()
     _apply_config({k: (cfg.get(k) or "").strip() for k in CONFIG_KEYS})
@@ -162,21 +215,14 @@ def test_config(cfg: dict) -> bool:
         missing = [k for k in REQUIRED_CONFIG_KEYS if not cfg_now.get(k)]
         if missing:
             raise RuntimeError("缺少配置：" + ", ".join(missing))
-        _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{MAIN_TABLE_ID}/records", payload={"page_size": 1})
+        _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{MAIN_TABLE_ID}/records",
+                payload={"page_size": 1})
         return True
     finally:
         _apply_config(old)
 
 
-# ------- 飞书 API 封装 -------
-class _FeishuError(RuntimeError):
-    """飞书 API 业务错误，携带 code 和 msg 供 friendly_error 精确诊断。"""
-    def __init__(self, d: dict):
-        self.code = d.get("code", 0)
-        self.msg = d.get("msg", "")
-        super().__init__(f"[{self.code}] {self.msg}")
-
-
+# ── 飞书 API 封装 ────────────────────────────────────
 def _token():
     r = requests.post(f"{API}/auth/v3/tenant_access_token/internal",
                       json={"app_id": APP_ID, "app_secret": APP_SECRET}, timeout=20)
@@ -193,15 +239,15 @@ def _feishu(path, method="GET", payload=None):
         r = requests.get(f"{API}{path}", headers=h, params=payload or {}, timeout=30)
     else:
         r = requests.post(f"{API}{path}", headers=h, json=payload, timeout=30)
+    # 先解析飞书业务 code（比 HTTP 状态码更有诊断价值）
     d = {}
     try:
         d = r.json()
     except Exception:
         pass
-    # 优先用飞书业务错误码（比 HTTP 状态码更有诊断价值）
     if d.get("code") != 0:
         raise _FeishuError(d)
-    # 飞书没给错误码但 HTTP 状态异常，让 requests 抛出
+    # 飞书没给业务 code 但 HTTP 状态异常 → 让 requests 抛出，由 friendly_error 兜底
     r.raise_for_status()
     return d.get("data", {})
 
@@ -219,28 +265,28 @@ def _bitable_app_token():
         return token
     if token in _APP_TOKEN_CACHE:
         return _APP_TOKEN_CACHE[token]
-    # 优先判断：如果看起来像标准 app_token（bascn/xxx 或直接以 bas/开头），直接使用。
-    # wiki 节点 token 通常是 Base64-like 长字符串，不以 bas 开头。
+    # 尝试用 wiki 接口解析
     try:
         node = _feishu("/wiki/v2/spaces/get_node", payload={"token": token}).get("node") or {}
         if node.get("obj_type") == "bitable" and node.get("obj_token"):
             _APP_TOKEN_CACHE[token] = node["obj_token"]
             return node["obj_token"]
     except Exception:
-        # wiki 查询失败（不是 wiki 节点 token、网络异常、或没有 wiki 权限），
-        # 回退：把 token 原样当 app_token 使用（适配独立多维表格 /base/ 场景）。
+        # wiki 解析失败 → 不是 wiki 节点 token → 回退：原样当普通 app_token 用
         pass
     _APP_TOKEN_CACHE[token] = token
     return token
 
 
+# ── 数据接口 ────────────────────────────────────────
 def list_records(table_id):
     recs, pt = [], None
     while True:
         p = {"page_size": 500}
         if pt:
             p["page_token"] = pt
-        data = _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{table_id}/records", payload=p)
+        data = _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{table_id}/records",
+                       payload=p)
         recs.extend(data.get("items", []))
         if not data.get("has_more"):
             return recs
@@ -248,7 +294,8 @@ def list_records(table_id):
 
 
 def list_fields(table_id):
-    data = _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{table_id}/fields", payload={"page_size": 200})
+    data = _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{table_id}/fields",
+                   payload={"page_size": 200})
     out = {}
     for item in data.get("items", []):
         name = item.get("field_name")
@@ -257,7 +304,7 @@ def list_fields(table_id):
     return out
 
 
-# ------- 数据读取（给看板用） -------
+# ── 看板数据组装 ─────────────────────────────────────
 def get_main_stats():
     recs = list_records(MAIN_TABLE_ID)
     rows = [r["fields"] for r in recs if r.get("fields", {}).get("公司名称")]
@@ -311,4 +358,5 @@ def get_main_stats():
 def get_dashboard_data():
     return {
         "main": get_main_stats(),
-        "now": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),}
+        "now": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }

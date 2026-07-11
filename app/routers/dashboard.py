@@ -22,13 +22,6 @@ def _empty(error: str) -> dict:
     }
 
 
-def _friendly(exc: Exception) -> str:
-    text = str(exc)
-    if any(k in text for k in ("SSLError", "ConnectionError", "10054", "Max retries", "EOF", "timed out", "Timeout")):
-        return "连不上飞书 open.feishu.cn（当前网络出口可能在境外，切回国内网络后恢复）"
-    return f"读取飞书数据失败：{text[:200]}"
-
-
 @router.get("")
 def get_dashboard():
     # 30 秒缓存，减少飞书 API 压力
@@ -43,8 +36,8 @@ def get_dashboard():
         # 有旧缓存就返回旧缓存 + 提示；否则返回空结构 + 提示。
         stale = state.get_cache(max_age=1e9)
         if stale:
-            return {**stale, "error": _friendly(e), "stale": True}
-        return _empty(_friendly(e))
+            return {**stale, "error": feishu.friendly_error(e), "stale": True}
+        return _empty(feishu.friendly_error(e))
 
 
 @router.post("/refresh")
@@ -56,5 +49,5 @@ def refresh_dashboard():
     except Exception as e:
         stale = state.get_cache(max_age=1e9)
         if stale:
-            return {**stale, "error": _friendly(e), "stale": True}
-        return _empty(_friendly(e))
+            return {**stale, "error": feishu.friendly_error(e), "stale": True}
+        return _empty(feishu.friendly_error(e))
