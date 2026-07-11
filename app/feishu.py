@@ -25,6 +25,9 @@ APP_TOKEN = os.getenv("FEISHU_APP_TOKEN")
 MAIN_TABLE_ID = os.getenv("MAIN_TABLE_ID")
 API = "https://open.feishu.cn/open-apis"
 
+# 缓存 wiki 节点 token -> 多维表格 app_token 的映射，避免每次请求都解析
+_APP_TOKEN_CACHE = {}
+
 
 def _apply_config(cfg: dict) -> None:
     global APP_ID, APP_SECRET, APP_TOKEN, MAIN_TABLE_ID
@@ -32,6 +35,7 @@ def _apply_config(cfg: dict) -> None:
     APP_SECRET = cfg.get("FEISHU_APP_SECRET") or ""
     APP_TOKEN = cfg.get("FEISHU_APP_TOKEN") or ""
     MAIN_TABLE_ID = cfg.get("MAIN_TABLE_ID") or ""
+    _APP_TOKEN_CACHE.clear()
 
 
 def get_config() -> dict:
@@ -88,7 +92,7 @@ def test_config(cfg: dict) -> bool:
         missing = [k for k in REQUIRED_CONFIG_KEYS if not cfg_now.get(k)]
         if missing:
             raise RuntimeError("缺少配置：" + ", ".join(missing))
-        _feishu(f"/bitable/v1/apps/{APP_TOKEN}/tables/{MAIN_TABLE_ID}/records", payload={"page_size": 1})
+        _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{MAIN_TABLE_ID}/records", payload={"page_size": 1})
         return True
     finally:
         _apply_config(old)
@@ -118,13 +122,38 @@ def _feishu(path, method="GET", payload=None):
     return d.get("data", {})
 
 
+def _bitable_app_token():
+    """把配置里的 APP_TOKEN 解析成真正的多维表格 app_token。
+
+    支持两种来源：
+    - 独立多维表格链接 /base/xxx：xxx 本身就是 app_token，直接用。
+    - 知识库链接 /wiki/xxx：xxx 是 wiki 节点 token，需要用 wiki 接口换成
+      节点挂载的多维表格 obj_token 才能调 bitable API。
+    """
+    token = APP_TOKEN or ""
+    if not token:
+        return token
+    if token in _APP_TOKEN_CACHE:
+        return _APP_TOKEN_CACHE[token]
+    resolved = token
+    try:
+        node = _feishu("/wiki/v2/spaces/get_node", payload={"token": token}).get("node") or {}
+        if node.get("obj_type") == "bitable" and node.get("obj_token"):
+            resolved = node["obj_token"]
+    except Exception:
+        # 不是 wiki 节点（例如就是独立多维表格 app_token），保持原样即可。
+        resolved = token
+    _APP_TOKEN_CACHE[token] = resolved
+    return resolved
+
+
 def list_records(table_id):
     recs, pt = [], None
     while True:
         p = {"page_size": 500}
         if pt:
             p["page_token"] = pt
-        data = _feishu(f"/bitable/v1/apps/{APP_TOKEN}/tables/{table_id}/records", payload=p)
+        data = _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{table_id}/records", payload=p)
         recs.extend(data.get("items", []))
         if not data.get("has_more"):
             return recs
@@ -132,7 +161,7 @@ def list_records(table_id):
 
 
 def list_fields(table_id):
-    data = _feishu(f"/bitable/v1/apps/{APP_TOKEN}/tables/{table_id}/fields", payload={"page_size": 200})
+    data = _feishu(f"/bitable/v1/apps/{_bitable_app_token()}/tables/{table_id}/fields", payload={"page_size": 200})
     out = {}
     for item in data.get("items", []):
         name = item.get("field_name")
