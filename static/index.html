@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>嵌入式校招雷达 · 控制台</title>
+<title>嵌入式校招看板</title>
 <style>
 :root{
   --bg:#f5f7fb;--panel:#fff;--ink:#111827;--muted:#667085;--sub:#98a2b3;--line:#e4e8f0;--line2:#cfd6e3;
@@ -53,7 +53,6 @@ a{color:var(--blue);text-decoration:none;font-weight:700}a:hover{color:var(--blu
 .btn.loading{position:relative;color:transparent}.btn.loading:after{content:"";position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--blue);animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(1turn)}}
 .btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue2));border-color:transparent;color:#fff}
 .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.btn-success{background:var(--green);border-color:transparent;color:#fff}.btn-success:hover{background:#047857}
 /* ---- page transition ---- */
 .page{display:none;animation:pageIn .45s var(--spring)}
 .page.active{display:block}
@@ -70,8 +69,8 @@ a{color:var(--blue);text-decoration:none;font-weight:700}a:hover{color:var(--blu
 .dot.g{background:var(--green);box-shadow:0 0 0 5px var(--greenS)}.dot.a{background:var(--amber);box-shadow:0 0 0 5px var(--amberS)}.dot.r{background:var(--red);box-shadow:0 0 0 5px var(--redS)}.dot.c{background:var(--cyan);box-shadow:0 0 0 5px var(--cyanS)}
 .card-title{font-size:15px;font-weight:800}.card-sub{margin-left:auto;color:var(--sub);font-size:12px}
 .card-body{padding:16px 18px}
-.kpi,.op-card,.funnel-step,.tl-item,.palette-item{transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease),background .22s var(--ease)}
-.kpi:hover,.op-card:hover,.funnel-step:hover{transform:translateY(-3px);box-shadow:var(--shadow2);border-color:rgba(37,99,235,.32)}
+.kpi,.funnel-step,.tl-item,.palette-item{transition:transform .22s var(--ease),box-shadow .22s var(--ease),border-color .22s var(--ease),background .22s var(--ease)}
+.kpi:hover,.funnel-step:hover{transform:translateY(-3px);box-shadow:var(--shadow2);border-color:rgba(37,99,235,.32)}
 .kpi-value{transition:transform .24s var(--spring)}.kpi:hover .kpi-value{transform:translateY(-2px) scale(1.035)}
 /* ---- kpis ---- */
 .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-bottom:18px}
@@ -105,19 +104,12 @@ td{padding:10px;color:var(--ink);font-size:13px}tr:hover td{background:var(--blu
 .track{height:9px;border-radius:999px;background:var(--line);overflow:hidden}.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),#60a5fa);transition:width .7s var(--spring);position:relative;overflow:hidden}.fill:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.48),transparent);animation:barFlow 2.2s ease-in-out infinite}.fill.g{background:linear-gradient(90deg,var(--green),#34d399)}@keyframes barFlow{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 .funnel{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .funnel-step{position:relative;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}.funnel-step:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));transform-origin:left;animation:funnelPulse 3.2s ease-in-out infinite}.funnel-step b{display:block;font-size:24px;letter-spacing:-.03em}.funnel-step span{display:block;color:var(--muted);font-size:12px;margin-top:2px}@keyframes funnelPulse{50%{transform:scaleX(.55);opacity:.55}}
-.funnel-small{grid-template-columns:repeat(3,1fr)}
 .timeline{padding:4px 4px}.tl-item{position:relative;display:grid;grid-template-columns:64px 1fr auto;gap:12px;padding:0 0 16px 18px;border-left:2px solid var(--line);align-items:center}
 .tl-item:last-child{padding-bottom:0}.tl-item:before{content:"";position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 5px var(--blueS)}
 .tl-date{font-weight:800;color:var(--blue);font-size:12px}.tl-main b{display:block;font-size:13px}.tl-main span{display:block;color:var(--muted);font-size:12px;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ---- forms ---- */
 .form-group{margin-bottom:14px}.form-group label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}
 .form-group input,.form-group select{width:100%;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:var(--ink);font:13px var(--font)}
-/* ---- completion ---- */
-.comp-section{margin-bottom:18px}.comp-section-hd{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:var(--sub);margin-bottom:8px}
-.completion-fields{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.comp-label{display:flex!important;align-items:center;gap:7px;cursor:pointer;padding:7px 10px;border-radius:10px;border:1px solid var(--line);font-size:13px;font-weight:700;transition:.14s var(--ease)}
-.comp-label:hover{border-color:var(--blue);background:var(--blueS)}
-.comp-label input{width:auto!important;height:auto!important;accent-color:var(--blue)}
 /* ---- toast ---- */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:10px;align-items:center;padding:12px 18px;border-radius:999px;background:var(--ink);color:var(--bg);box-shadow:var(--shadow2);font-weight:800;font-size:13px;transition:.25s var(--spring)}
 .toast.hidden{opacity:0;pointer-events:none;transform:translate(-50%,-10px)}.toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
@@ -142,7 +134,7 @@ td{padding:10px;color:var(--ink);font-size:13px}tr:hover td{background:var(--blu
 .grid-mini{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
 kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);border-radius:6px;padding:2px 6px;color:var(--muted)}
 @media(max-width:1080px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line)}.kpis{grid-template-columns:repeat(3,1fr)}.funnel{grid-template-columns:repeat(2,1fr)}.grid-2,.grid-3,.grid-mini,.hero{grid-template-columns:1fr}.radar-viz{min-height:110px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.card:hover,.kpi:hover,.op-card:hover,.funnel-step:hover{transform:none!important}.bg-orbits{display:none}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.card:hover,.kpi:hover,.funnel-step:hover{transform:none!important}.bg-orbits{display:none}}
 </style>
 </head>
 <body>
@@ -165,9 +157,8 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
       <div class="form-group"><label>App Secret</label><input id="first-app-secret" type="password" placeholder="留空不修改"></div>
       <div class="form-group"><label>表格链接或 Base Token</label><input id="first-app-token" placeholder="https://.../base/xxxx"></div>
       <div class="form-group"><label>主表 ID</label><input id="first-main-table" placeholder="tblxxxxxxxx"></div>
-      
     </div>
-    <span class="secret-note">🔐 密钥留存本机 .env，不回显</span>
+    <span class="secret-note">密钥留存本机 .env，不回显</span>
   </div>
   <div class="modal-ft"><button class="btn" onclick="testConfig('first')">测试连接</button><button class="btn btn-primary" onclick="saveConfig('first')">保存并进入看板</button></div></div>
 </div>
@@ -179,25 +170,24 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
   <aside class="sidebar">
     <div class="brand"><div class="mark"></div><div><b>校招看板</b><span>飞书投递进度驾驶舱</span></div></div>
     <div class="nav-sec">工作台</div>
-    <a data-page="page-dashboard" onclick="navTo(this)" class="active">📊 看板总览</a>
-    <a data-page="page-completion" onclick="navTo(this)">🧩 主表补齐</a>
-    <a data-page="page-config" onclick="navTo(this)">⚙️ 飞书配置</a>
+    <a data-page="page-dashboard" onclick="navTo(this)" class="active">看板总览</a>
+    <a data-page="page-config" onclick="navTo(this)">飞书配置</a>
     <div class="sidebar-foot">
       <div class="conn" id="conn-state"><span class="pulse" id="conn-pulse"></span><span id="conn-text">检查配置…</span></div>
-      <div style="margin-top:6px">按 <kbd>⌘</kbd><kbd>K</kbd> 打开命令面板</div>
+      <div style="margin-top:6px">按 <kbd>&#8984;</kbd><kbd>K</kbd> 打开命令面板</div>
     </div>
   </aside>
   <main class="main">
-    <div class="topbar"><h1 id="page-title">看板总览</h1><div class="spacer"></div><span class="muted" id="last-updated" style="font-size:12px">—</span><button class="icon-btn" onclick="openPalette()" title="⌘K">⌘</button><button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="主题">🌙</button><button class="btn" onclick="refreshData(event)">刷新</button></div>
+    <div class="topbar"><h1 id="page-title">看板总览</h1><div class="spacer"></div><span class="muted" id="last-updated" style="font-size:12px">—</span><button class="icon-btn" onclick="openPalette()" title="Cmd+K">&#8984;</button><button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="主题">🌙</button><button class="btn" onclick="refreshData(event)">刷新</button></div>
 
-    <!-- ========== 看板总览 ========== -->
+    <!-- 看板总览 -->
     <section class="page active" id="page-dashboard">
       <div class="hero"><div>
-        <h2>嵌入式校招作战看板</h2><p>飞书主表实时统计：投递漏斗、截止风险、公司画像和方向分布一目了然。</p>
+        <h2>嵌入式校招作战看板</h2><p>飞书主表实时统计：投递漏斗、截止风险、方向分布一目了然。</p>
         <div class="hero-metrics">
           <span class="hero-chip"><i></i><span id="hero-health">—</span></span>
-          <span class="hero-chip">⚡ <span id="hero-focus">—</span></span>
-          <span class="hero-chip">🎯 <span id="hero-action">—</span></span>
+          <span class="hero-chip"><span id="hero-focus">—</span></span>
+          <span class="hero-chip"><span id="hero-action">—</span></span>
         </div>
       </div>
       <div class="radar-viz" aria-hidden="true"><svg class="radar-svg" viewBox="0 0 200 200" role="img"><defs><linearGradient id="radarG" x1="0" x2="1"><stop stop-color="#2563eb" stop-opacity=".45"/><stop offset="1" stop-color="#06b6d4" stop-opacity=".05"/></linearGradient></defs><circle class="radar-ring" cx="100" cy="100" r="72"/><circle class="radar-ring" cx="100" cy="100" r="48"/><circle class="radar-ring" cx="100" cy="100" r="24"/><path class="radar-sweep" d="M100 100 L100 28 A72 72 0 0 1 168 124 Z" fill="url(#radarG)"/><line class="radar-ring" x1="28" y1="100" x2="172" y2="100"/><line class="radar-ring" x1="100" y1="28" x2="100" y2="172"/><circle class="radar-point" cx="136" cy="72" r="4"/><circle class="radar-point p2" cx="72" cy="132" r="3.5"/><circle class="radar-point p3" cx="122" cy="124" r="3"/></svg></div></div>
@@ -220,70 +210,7 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
       </div>
     </section>
 
-    <!-- ========== 主表补齐 ========== -->
-    <section class="page" id="page-completion">
-      <div class="hero hero-solo"><div>
-        <h2>公司画像补齐</h2><p>自动补齐嵌入式方向、公司所在地/主要办公城市和公司画像。投递链接、截止时间、岗位、岗位类型仍由你手动维护。</p>
-        <div class="hero-metrics">
-          <span class="hero-chip"><i></i>🛡️ 只补空字段</span>
-          <span class="hero-chip">🏙️ 所在地支持多城市</span>
-          <span class="hero-chip">✅ 先预览后确认</span>
-        </div>
-      </div></div>
-      <div class="grid-2">
-        <div class="card" style="border-left:3px solid var(--blue)"><div class="card-hd"><span class="dot"></span><div class="card-title">① 选择自动补齐字段</div></div>
-          <div class="card-body">
-            <div class="comp-section"><div class="comp-section-hd"><span class="badge bdg-a">公司与嵌入式画像</span> 默认启用 · 不依赖机会发现池</div>
-              <div class="completion-fields" id="completion-fields">
-                <label class="comp-label"><input type="checkbox" value="嵌入式方向" checked> 嵌入式方向</label>
-                <label class="comp-label"><input type="checkbox" value="工作地点" checked> 公司所在地/主要办公城市（可多选）</label>
-                <label class="comp-label"><input type="checkbox" value="公司/行业类型" checked> 公司/行业类型</label>
-                <label class="comp-label"><input type="checkbox" value="细分类型" checked> 细分类型</label>
-                <label class="comp-label"><input type="checkbox" value="公司规模" checked> 公司规模</label>
-                <label class="comp-label"><input type="checkbox" value="公司简介" checked> 公司简介</label>
-              </div>
-            </div>
-            <div class="comp-note">
-              <b>不会自动填写：</b>投递链接、投递截止时间、秋招岗位、JD 原文、岗位类型。<br>
-              <b>地点说明：</b>当前飞书字段仍叫“工作地点”，这里写入的是公司所在地/主要办公城市，不是具体岗位工作地。
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn" onclick="updateProfiles(event)">🧠 更新画像库</button>
-              <button class="btn btn-primary" onclick="previewCompletion(event)">🔍 预览可补齐字段</button>
-              <button class="btn btn-success" onclick="applyCompletion(event)">✅ 写入飞书主表</button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="card" style="border-left:3px solid var(--green)"><div class="card-hd"><span class="dot g"></span><div class="card-title">② 预览摘要</div><div class="card-sub" id="completion-plan-id">—</div></div>
-            <div class="card-body"><div class="funnel" id="completion-summary"><div class="center">点击预览后显示</div></div></div>
-          </div>
-          <div class="card" style="border-left:3px solid var(--red)"><div class="card-hd"><span class="dot r"></span><div class="card-title">③ 跳过</div><div class="card-sub" id="completion-skip-count">—</div></div>
-            <div class="tbl" style="max-height:200px"><table><thead><tr><th>公司</th><th>字段</th><th>原因</th></tr></thead><tbody id="completion-skip-tbody"><tr><td colspan="3" class="center">—</td></tr></tbody></table></div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="border-left:3px solid var(--cyan)"><div class="card-hd"><span class="dot c"></span><div class="card-title">AI 画像生成</div><div class="card-sub" id="ai-profile-status">AI 不直接写飞书</div></div>
-        <div class="card-body">
-          <div class="grid-2">
-            <div class="form-group"><label>目标公司（可选，每行一个；留空则处理画像缺失公司）</label><textarea id="ai-companies" style="width:100%;min-height:86px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:var(--ink);font:13px var(--font)" placeholder="比亚迪\n汇川技术"></textarea></div>
-            <div class="form-group"><label>公开资料正文（可选，不会自动访问网址）</label><textarea id="ai-materials" style="width:100%;min-height:86px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel);color:var(--ink);font:13px var(--font)" placeholder="粘贴官网简介、招聘页正文或 JD 片段。格式建议：公司名：正文"></textarea></div>
-          </div>
-          <div class="comp-note" style="margin-bottom:12px"><b>安全说明：</b>AI 只基于飞书已有字段/JD 和你粘贴的正文生成候选；不会联网搜索，不会直接写飞书。保存后只更新本地画像库，再走下方预览确认。</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-            <button class="btn btn-primary" onclick="previewAIProfiles(event)">✨ AI 生成画像候选</button>
-            <button class="btn btn-success" onclick="applyAIProfiles(event)">💾 保存到本地画像库</button>
-            <button class="btn" onclick="previewCompletion(event)">继续补齐预览</button>
-          </div>
-          <div class="tbl" style="max-height:300px"><table><thead><tr><th>选</th><th>公司</th><th>候选字段</th><th>置信度</th><th>来源</th><th>理由</th></tr></thead><tbody id="ai-profile-tbody"><tr><td colspan="6" class="center">生成后显示 AI 候选</td></tr></tbody></table></div>
-        </div>
-      </div>
-      <div class="card" style="border-left:3px solid var(--amber)"><div class="card-hd"><span class="dot a"></span><div class="card-title">④ 拟写入</div><div class="card-sub">勾选确认后写入；写入前会再次检查字段仍为空</div></div>
-        <div class="tbl" style="max-height:380px"><table><thead><tr><th>选</th><th>公司</th><th>字段</th><th>拟写入</th><th>来源</th><th>风险</th></tr></thead><tbody id="completion-tbody"><tr><td colspan="6" class="center">点击预览后显示</td></tr></tbody></table></div>
-      </div>
-    </section>
-
-    <!-- ========== 飞书配置 ========== -->
+    <!-- 飞书配置 -->
     <section class="page" id="page-config">
       <div class="card"><div class="card-hd"><span class="dot"></span><div class="card-title">飞书配置</div></div>
         <div class="card-body">
@@ -293,8 +220,6 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
             <div class="form-group"><label>App Secret</label><input id="cfg-app-secret" type="password" placeholder="留空不修改"><div class="help" id="cfg-secret-help"></div></div>
             <div class="form-group"><label>表格链接或 Base Token</label><input id="cfg-app-token" placeholder="https://.../base/xxxx 或 token"></div>
             <div class="form-group"><label>主表 ID</label><input id="cfg-main-table" placeholder="tblxxxxxxxx"></div>
-            <div class="form-group"><label>Anthropic API Key（AI 画像，可选）</label><input id="cfg-anthropic-key" type="password" placeholder="留空不修改"><div class="help" id="cfg-anthropic-help"></div></div>
-            <div class="form-group"><label>Claude 模型</label><input id="cfg-anthropic-model" placeholder="claude-opus-4-8"></div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
             <button class="btn" onclick="testConfig('cfg')">测试连接</button>
@@ -310,11 +235,10 @@ kbd{font:11px var(--mono);background:var(--line);border:1px solid var(--line2);b
 
 <script>
 const $=id=>document.getElementById(id),DAY=864e5;
-let _jobs=[],_lastData=null,_lastErrorAt=0;
+let _lastData=null,_lastErrorAt=0;
 function esc(s){return String(s||'').replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
 function arr(v){return Array.isArray(v)?v:(v?[v]:[])}
 function link(url,text){if(!text)text='查看';return url?'<a href="'+esc(url)+'" target="_blank" rel="noreferrer">'+text+'</a>':'<span class="muted">—</span>'}
-function tags(list,n){if(!n)n=3;return arr(list).slice(0,n).map(function(x){return'<span class="tag">'+esc(x)+'</span>'}).join('')||'<span class="muted">—</span>'}
 function toast(msg,type,dur){if(!type)type='';if(!dur)dur=3200;var t=$('toast');$('toast-msg').textContent=msg;t.className='toast '+(type==='success'?'ok':type==='error'?'err':'');clearTimeout(window.__t);window.__t=setTimeout(function(){t.classList.add('hidden')},dur)}
 function showErrorModal(title,detail){var now=Date.now();if(now-_lastErrorAt<1800)return;_lastErrorAt=now;$('error-title').textContent=title||'发生错误';$('error-detail').textContent=detail||'未知错误';$('error-modal').classList.add('show')}
 function closeErrorModal(){$('error-modal').classList.remove('show')}
@@ -322,14 +246,14 @@ function copyErrorDetail(){navigator.clipboard&&navigator.clipboard.writeText($(
 function animateNumber(id,value){var el=$(id);if(!el)return;var target=Number(value)||0,from=Number(el.dataset.val||0),start=performance.now(),dur=620;el.dataset.val=target;function tick(now){var p=Math.min(1,(now-start)/dur),e=1-Math.pow(1-p,3);el.textContent=Math.round(from+(target-from)*e);if(p<1)requestAnimationFrame(tick)}requestAnimationFrame(tick)}
 async function api(method,url,body,opt){opt=opt||{};var o={method:method,headers:{'Content-Type':'application/json'}};if(body!==undefined)o.body=JSON.stringify(body);var r,text;try{r=await fetch(url,o);text=await r.text()}catch(e){if(!opt.silent)showErrorModal('请求失败',url+'\n\n'+e.message);throw e}var data={};try{data=text?JSON.parse(text):{}}catch(e){var msg=(text||'HTTP '+r.status).slice(0,1200);if(!opt.silent)showErrorModal('接口返回不是 JSON',url+'\nHTTP '+r.status+'\n\n'+msg);throw new Error(msg.slice(0,180))}if(!r.ok){var detail=typeof data.detail==='string'?data.detail:(data.error||JSON.stringify(data.detail||data));if(!opt.silent)showErrorModal('接口请求失败',url+'\nHTTP '+r.status+'\n\n'+detail);throw new Error(detail||'HTTP '+r.status)}return data}
 
-/* ---------- 路由等 ---------- */
-var PAGES={'page-dashboard':'看板总览','page-completion':'主表补齐','page-config':'飞书配置'};
+/* ---------- 路由 ---------- */
+var PAGES={'page-dashboard':'看板总览','page-config':'飞书配置'};
 function navTo(el){var id=typeof el==='string'?el:el.dataset.page;document.querySelectorAll('.sidebar a').forEach(function(a){a.classList.toggle('active',a.dataset.page===id)});document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('active',p.id===id)});$('page-title').textContent=PAGES[id]||'';localStorage.setItem('radar_page',id);if(id==='page-dashboard'&&!_lastData)load();if(id==='page-config')loadConfigStatus(false)}
 function applyTheme(t){document.documentElement.dataset.theme=t;$('theme-btn').textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('radar_theme',t)}
 function toggleTheme(){applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark')}
 
 /* ---------- Cmd+K ---------- */
-var CMDS=[{label:'看板总览',k:'g d',run:function(){navTo('page-dashboard')}},{label:'主表补齐',k:'g c',run:function(){navTo('page-completion')}},{label:'飞书配置',k:'g s',run:function(){navTo('page-config')}},{label:'刷新数据',k:'r',run:function(){refreshData()}},{label:'切换主题',k:'',run:function(){toggleTheme()}}];
+var CMDS=[{label:'看板总览',k:'g d',run:function(){navTo('page-dashboard')}},{label:'飞书配置',k:'g s',run:function(){navTo('page-config')}},{label:'刷新数据',k:'r',run:function(){refreshData()}},{label:'切换主题',k:'',run:function(){toggleTheme()}}];
 var _palSel=0,_palFiltered=CMDS;
 function openPalette(){$('palette-mask').classList.add('show');$('palette-input').value='';_palSel=0;renderPalette();setTimeout(function(){$('palette-input').focus()},30)}
 function closePalette(){$('palette-mask').classList.remove('show')}
@@ -339,25 +263,19 @@ function paletteKey(e){if(e.key==='ArrowDown'){e.preventDefault();_palSel=(_palS
 document.addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();$('palette-mask').classList.contains('show')?closePalette():openPalette()}});
 
 /* ---------- 截止分析 ---------- */
-function normJob(s){return String(s||'').trim().replace(/\s+/g,' ')}
-function isBadJob(s){s=normJob(s);return /^(\d+[\.、)]|[（(]\d+[）)]|[-•·])/.test(s)&&/(负责|参与|熟悉|具备|任职要求|岗位职责|完成|开发维护)/.test(s)}
 function parseDates(txt){var out=[];String(txt||'').replace(/(\d{4})[年\-/](\d{1,2})[月\-/](\d{1,2})/g,function(_,y,m,d){out.push(new Date(+y,+m-1,+d))});String(txt||'').replace(/(?<!\d)(\d{1,2})月(\d{1,2})日/g,function(_,m,d){out.push(new Date(2026,+m-1,+d))});return out.filter(function(d){return!isNaN(d)})}
 function analyze(row){var txt=String(row.deadline||''),now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());if(/已截止|已结束|停止投递|投递关闭/.test(txt))return{level:'closed',label:'已截止',badge:'bdg-r',note:txt,rank:999};var dates=parseDates(txt).sort(function(a,b){return a-b}),future=dates.filter(function(d){return d>=today});if(future.length){var d=future[0],left=Math.ceil((d-now)/DAY);if(left<=0)return{level:'dated',label:'今日截止',badge:'bdg-r blink',note:txt,rank:0,date:d};if(left<=3)return{level:'dated',label:'剩 '+left+' 天',badge:'bdg-r blink',note:txt,rank:left,date:d};if(left<=7)return{level:'dated',label:'剩 '+left+' 天',badge:'bdg-a',note:txt,rank:left,date:d};return{level:'dated',label:d.toISOString().slice(0,10),badge:'bdg-g',note:txt,rank:left,date:d}}if(/招满即止/.test(txt))return{level:'open',label:'招满即止',badge:'bdg-b',note:txt,rank:50};if(!txt)return{level:'open',label:'无明确截止',badge:'bdg-m',note:'未记录',rank:70};return{level:'open',label:'待确认',badge:'bdg-m',note:txt,rank:80}}
 function badge(w){return'<span class="badge '+w.badge+'">'+esc(w.label)+'</span>'}
 function fmtDate(v){if(!v||v===0)return'—';if(typeof v==='number'){var d=new Date(v);return isNaN(d)?'—':d.toISOString().slice(0,10)}return esc(String(v).slice(0,18))}
 function normCompany(s){return String(s||'').replace(/\s+/g,'').trim()}
 function buildAppliedMap(recent){var map=new Map();for(var i=0;i<recent.length;i++){var r=recent[i],key=normCompany(r.company);if(!key)continue;var p=arr(r.progress),level='已投递',cls='done';if(p.some(function(x){return String(x).indexOf('面')>=0})){level='面试中';cls='mid'}if(p.some(function(x){return String(x).indexOf('OC')>=0||String(x).indexOf('Offer')>=0})){level='Offer';cls='done'}if(p.some(function(x){return String(x).indexOf('已挂')>=0||String(x).indexOf('放弃')>=0})){level='已结束';cls='dead'}map.set(key,{level:level,cls:cls})}return map}
-function applyState(r,map){var s=map.get(normCompany(r.company));if(s)return s;if(r.window&&r.window.level==='closed')return{level:'已结束',cls:'dead'};return{level:'未投递',cls:'todo'}}
-function stateBadge(s){return'<span class="state '+s.cls+'">'+esc(s.level)+'</span>'}
-function dedupeRows(rows){var map=new Map();for(var i=0;i<rows.length;i++){var raw=rows[i];if(raw.type!=='嵌入式岗位开放')continue;var r={};for(var k in raw){r[k]=raw[k]}r.job=normJob(r.job);if(isBadJob(r.job))continue;r.window=analyze(r);r.score=(r.window.level==='dated'?100-r.window.rank:r.window.level==='open'?40:r.window.level==='closed'?-50:0)+(r.conf==='高'?5:0);var key=[r.company,r.type,(r.url||'').split('?')[0].replace(/\/$/,'')].join('|'),old=map.get(key);if(!old||r.score>old.score)map.set(key,r)}return Array.from(map.values())}
 function renderBars(data,el,cls){if(!cls)cls='';var rows=arr(data),max=Math.max.apply(null,rows.map(function(x){return x[1]}));if(!max)max=1;el.innerHTML=rows.length?rows.map(function(x){return'<div class="bar"><div class="bar-row"><span>'+esc(x[0])+'</span><strong>'+x[1]+'</strong></div><div class="track"><div class="fill '+cls+'" style="width:'+Math.max(8,x[1]/max*100).toFixed(0)+'%"></div></div></div>'}).join(''):'<div class="center">暂无数据</div>'}
 
 /* ---------- 看板数据 ---------- */
 function renderDashboard(d){
-  d=d||{};d.main=d.main||{};d.pool=d.pool||{rows:[]};_lastData=d;
+  d=d||{};d.main=d.main||{};_lastData=d;
   if(d.error)toast((d.stale?'缓存：':'')+d.error,'error',5600);
   var recent=arr(d.main.recent),appliedMap=buildAppliedMap(recent);
-  _jobs=[];  //机会池已废弃，截止时间轴改用主表 recent 数据解析 deadline 文本
   var dated=[];
   (d.main.recent||[]).forEach(function(r){
     var w=analyze({deadline:r.deadline});
@@ -368,59 +286,32 @@ function renderDashboard(d){
   animateNumber('kpi-total',d.main.total_companies||0);animateNumber('kpi-a',(d.main.directions||[]).length+(d.main.ctypes||[]).length);animateNumber('kpi-dated',dated.length);animateNumber('kpi-closed',0);animateNumber('kpi-applied',recent.length);animateNumber('kpi-interview',d.main.interview_count||0);
   if($('hero-health'))$('hero-health').textContent=d.stale?'使用缓存':'飞书数据已连接';
   if($('hero-focus'))$('hero-focus').textContent=(d.main.directions||[]).length+' 类方向 · '+(d.main.ctypes||[]).length+' 类公司';
-  if($('hero-action'))$('hero-action').textContent=recent.length?'继续跟进 '+recent.length+' 条投递':'先完善主表画像';
+  if($('hero-action'))$('hero-action').textContent=recent.length?'继续跟进 '+recent.length+' 条投递':'在飞书表格里填入公司';
   $('funnel').innerHTML=[['监控公司',d.main.total_companies||0,'主表公司'],['已投递',recent.length,'有投递时间'],['机考',d.main.exam_count||0,'测评/机考'],['面试',d.main.interview_count||0,'一至三面'],['Offer',d.main.offer_count||0,'OC/录用']].map(function(x){return'<div class="funnel-step"><b>'+x[1]+'</b><span>'+x[0]+' · '+x[2]+'</span></div>'}).join('');
   $('deadline-timeline').innerHTML=dated.length?dated.slice(0,12).map(function(r){var dt=r.window.date?r.window.date.toISOString().slice(5,10):'--';return'<div class="tl-item"><div class="tl-date">'+dt+'</div><div class="tl-main"><b>'+esc(r.company)+'</b><span>'+esc(r.job||'—')+'</span></div><div>'+badge(r.window)+'</div></div>'}).join(''):'<div class="center">暂无明确截止</div>';
-renderBars(d.main.directions,$('chart-dir'));renderBars(d.main.ctypes,$('chart-type'),'g');
+  renderBars(d.main.directions,$('chart-dir'));renderBars(d.main.ctypes,$('chart-type'),'g');
   $('recent-tbody').innerHTML=recent.slice(0,40).map(function(r){return'<tr><td class="company">'+esc(r.company||'—')+'</td><td class="job" title="'+esc(r.job||'')+'">'+esc(r.job||'—')+'</td><td>'+fmtDate(r.apply_date)+'</td><td>'+fmtDate(r.exam_date)+'</td><td>'+fmtDate(r.interview1)+'</td><td>'+fmtDate(r.interview2)+'</td><td>'+arr(r.progress).map(function(x){return'<span class="badge bdg-m">'+esc(x)+'</span>'}).join(' ')+'</td><td>'+(typeof r.deadline==='number'?fmtDate(r.deadline):badge(analyze({deadline:r.deadline})))+'</td><td>'+link(r.url)+'</td></tr>'}).join('')||'<tr><td colspan="9" class="center">暂无投递记录</td></tr>';
 }
 async function load(){var d=await api('GET','/api/dashboard');renderDashboard(d);if(d.error)showErrorModal('飞书数据读取失败',d.error)}
 
 /* ---------- 飞书配置 ---------- */
 function extractAppToken(v){v=String(v||'').trim();var m=v.match(/\/base\/([^/?#]+)/);return m?m[1]:v}
-function formIds(prefix){return prefix==='first'?{app:'first-app-id',secret:'first-app-secret',token:'first-app-token',main:'first-main-table',disc:'first-discovery-table',anthropicKey:'first-anthropic-key',anthropicModel:'first-anthropic-model'}:{app:'cfg-app-id',secret:'cfg-app-secret',token:'cfg-app-token',main:'cfg-main-table',disc:'cfg-discovery-table',anthropicKey:'cfg-anthropic-key',anthropicModel:'cfg-anthropic-model'}}
-function configPayload(prefix){var ids=formIds(prefix);return{feishu_app_id:$(ids.app).value.trim(),feishu_app_secret:$(ids.secret).value.trim(),feishu_app_token:extractAppToken($(ids.token).value),main_table_id:$(ids.main).value.trim(),discovery_table_id:$(ids.disc)&&$(ids.disc).value.trim()||'',anthropic_api_key:$(ids.anthropicKey)&&$(ids.anthropicKey).value.trim()||'',anthropic_model:$(ids.anthropicModel)&&$(ids.anthropicModel).value.trim()||''}}
-function fillConfigForm(prefix,values){var ids=formIds(prefix);if($(ids.app))$(ids.app).value=values.feishu_app_id||'';if($(ids.token))$(ids.token).value=values.feishu_app_token||'';if($(ids.main))$(ids.main).value=values.main_table_id||'';if($(ids.secret)){$(ids.secret).value='';$(ids.secret).placeholder=values.feishu_app_secret_masked?'已保存：'+values.feishu_app_secret_masked:'飞书 App Secret'}if($(ids.anthropicModel))$(ids.anthropicModel).value=values.anthropic_model||'claude-opus-4-8';if($(ids.anthropicKey)){$(ids.anthropicKey).value='';$(ids.anthropicKey).placeholder=values.anthropic_api_key_masked?'已保存：'+values.anthropic_api_key_masked:'Anthropic API Key'}}
-async function loadConfigStatus(openWhenMissing){if(openWhenMissing===undefined)openWhenMissing=true;try{var d=await api('GET','/api/config',undefined,{silent:true});fillConfigForm('cfg',d.values||{});fillConfigForm('first',d.values||{});if($('cfg-secret-help'))$('cfg-secret-help').textContent=d.values&&d.values.feishu_app_secret_masked?'当前已保存密钥：'+d.values.feishu_app_secret_masked:'尚未保存密钥';if($('cfg-anthropic-help'))$('cfg-anthropic-help').textContent=d.values&&d.values.anthropic_api_key_masked?'当前已保存 AI Key：'+d.values.anthropic_api_key_masked:'未配置 AI Key 时不能生成画像';if($('ai-profile-status'))$('ai-profile-status').textContent=d.values&&d.values.anthropic_api_key_masked?'AI 已配置 · '+(d.values.anthropic_model||'claude-opus-4-8'):'未配置 AI Key';$('conn-text').textContent=d.configured?'飞书已连接':'待配置';$('conn-pulse').style.background=d.configured?'var(--green)':'var(--amber)';if(!d.configured&&openWhenMissing)$('config-modal').classList.add('show');return d}catch(e){$('conn-text').textContent='接口异常';showErrorModal('配置接口异常',e.message)}}
+function formIds(prefix){return prefix==='first'?{app:'first-app-id',secret:'first-app-secret',token:'first-app-token',main:'first-main-table'}:{app:'cfg-app-id',secret:'cfg-app-secret',token:'cfg-app-token',main:'cfg-main-table'}}
+function configPayload(prefix){var ids=formIds(prefix);return{feishu_app_id:$(ids.app).value.trim(),feishu_app_secret:$(ids.secret).value.trim(),feishu_app_token:extractAppToken($(ids.token).value),main_table_id:$(ids.main).value.trim()}}
+function fillConfigForm(prefix,values){var ids=formIds(prefix);if($(ids.app))$(ids.app).value=values.feishu_app_id||'';if($(ids.token))$(ids.token).value=values.feishu_app_token||'';if($(ids.main))$(ids.main).value=values.main_table_id||'';if($(ids.secret)){$(ids.secret).value='';$(ids.secret).placeholder=values.feishu_app_secret_masked?'已保存：'+values.feishu_app_secret_masked:'飞书 App Secret'}}
+async function loadConfigStatus(openWhenMissing){if(openWhenMissing===undefined)openWhenMissing=true;try{var d=await api('GET','/api/config',undefined,{silent:true});fillConfigForm('cfg',d.values||{});fillConfigForm('first',d.values||{});if($('cfg-secret-help'))$('cfg-secret-help').textContent=d.values&&d.values.feishu_app_secret_masked?'已保存密钥：'+d.values.feishu_app_secret_masked:'尚未保存密钥';$('conn-text').textContent=d.configured?'飞书已连接':'待配置';$('conn-pulse').style.background=d.configured?'var(--green)':'var(--amber)';if(!d.configured&&openWhenMissing)$('config-modal').classList.add('show');return d}catch(e){$('conn-text').textContent='接口异常';showErrorModal('配置接口异常',e.message)}}
 async function testConfig(prefix){prefix=prefix||'cfg';try{var r=await api('POST','/api/config/test',configPayload(prefix));if(r.success){toast(r.message||'连接成功','success')}else{showErrorModal('连接测试失败',r.error||'未知错误');toast('连接测试失败','error')}}catch(e){toast('连接测试失败：'+e.message,'error')}}
 async function saveConfig(prefix){prefix=prefix||'cfg';try{var r=await api('POST','/api/config',configPayload(prefix));toast(r.message||'已保存配置','success');$('config-modal').classList.remove('show');await loadConfigStatus(false);refreshData()}catch(e){toast('保存失败：'+e.message,'error')}}
 
 /* ---------- 刷新 ---------- */
 function refreshData(e){var btn=e&&e.currentTarget;if(btn)btn.classList.add('loading');toast('正在刷新…');api('POST','/api/dashboard/refresh').then(function(d){renderDashboard(d);if(d.error)showErrorModal('飞书数据刷新失败',d.error);else toast('已刷新','success')}).catch(function(e){toast('刷新失败：'+e.message,'error',5600)}).then(function(){if(btn)btn.classList.remove('loading')})}
 
-/* ---------- 主表补齐 ---------- */
-var _completionPlanId=null,_completionData=null;
-function completionFields(){var cbs=document.querySelectorAll('#completion-fields input[type="checkbox"]'),out=[];cbs.forEach(function(c){if(c.checked)out.push(c.value)});return out}
-async function updateProfiles(ev){var btn=ev&&ev.currentTarget;if(btn)btn.classList.add('loading');try{var r=await api('POST','/api/completion/profiles/update',{});toast('画像库已更新：扫描 '+r.companies_scanned+' 家，新增 '+r.profiles_created+' 家，变更 '+r.profiles_changed+' 家','success',5600);$('completion-plan-id').textContent='画像库 '+r.profiles_total+' 家 · 本次变更 '+r.field_changes+' 字段';$('completion-summary').innerHTML=[['扫描',r.companies_scanned,'主表公司'],['画像库',r.profiles_total,'家公司'],['新增',r.profiles_created,'家公司'],['变更',r.profiles_changed,'家公司']].map(function(x){return'<div class="funnel-step"><b>'+x[1]+'</b><span>'+x[0]+' · '+x[2]+'</span></div>'}).join('');if((r.changed_companies||[]).length){$('completion-skip-tbody').innerHTML=r.changed_companies.slice(0,60).map(function(c){return'<tr><td class="company">'+esc(c)+'</td><td>画像库</td><td>已更新本地画像，点击预览可查看可写入字段</td></tr>'}).join('');$('completion-skip-count').textContent=r.changed_companies.length+' 家更新'}else{$('completion-skip-tbody').innerHTML='<tr><td colspan="3" class="center">画像库无新增变更</td></tr>';$('completion-skip-count').textContent='无变更'}}catch(e){toast('画像库更新失败：'+e.message,'error',5600)}finally{if(btn)btn.classList.remove('loading')}}
-async function previewCompletion(ev){var btn=ev&&ev.currentTarget;if(btn)btn.classList.add('loading');try{var fields=completionFields();if(!fields.length){toast('请至少选择一个字段','error');if(btn)btn.classList.remove('loading');return}
-  var body={fields:fields,include_medium_risk:true,include_curated:true};
-  var r=await api('POST','/api/completion/preview',body);_completionPlanId=r.plan_id;_completionData=r;
-  $('completion-plan-id').textContent='计划 '+r.plan_id+' · '+r.summary.records_with_changes+' 家 · '+r.summary.field_changes+' 字段 · '+r.summary.skipped+' 跳过';
-  $('completion-summary').innerHTML=[['扫描',r.summary.companies_scanned,'家公司'],['待补',r.summary.records_with_changes,'有补齐项'],['字段',r.summary.field_changes,'拟写入'],['跳过',r.summary.skipped,'有原因']].map(function(x){return'<div class="funnel-step"><b>'+x[1]+'</b><span>'+x[0]+' · '+x[2]+'</span></div>'}).join('');
-  var changes=[];(r.changes||[]).forEach(function(g){g.fields.forEach(function(f){changes.push({record_id:g.record_id,company:g.company,field:f.field,proposed_value:f.proposed_value,source:f.source,reason:f.reason,risk:f.risk})})});
-  $('completion-tbody').innerHTML=changes.length?changes.map(function(c){return'<tr><td><input type="checkbox" checked data-rid="'+esc(c.record_id)+'" data-field="'+esc(c.field)+'"></td><td class="company">'+esc(c.company)+'</td><td>'+esc(c.field)+'</td><td>'+esc(String(c.proposed_value||'').slice(0,60))+'</td><td>'+esc(((c.source?c.source.kind:'')+'/'+(c.source?c.source.field:'')).slice(0,32))+'</td><td><span class="badge '+(c.risk==='low'?'bdg-g':c.risk==='medium'?'bdg-a':'bdg-r')+'">'+esc(c.risk)+'</span></td></tr>'}).join(''):'<tr><td colspan="6" class="center">没有可补齐的空字段</td></tr>';
-  var skips=r.skips||[];
-  $('completion-skip-tbody').innerHTML=skips.length?skips.slice(0,60).map(function(s){return'<tr><td class="company">'+esc(s.company||'—')+'</td><td>'+esc(s.field||'—')+'</td><td>'+esc(s.reason||'—')+'</td></tr>'}).join(''):'<tr><td colspan="3" class="center">全部可补齐</td></tr>';
-  $('completion-skip-count').textContent=skips.length+' 条跳过';
-  toast('预览完成：'+r.summary.records_with_changes+' 家可补 · '+r.summary.skipped+' 跳过','success',4800)}catch(e){toast('预览失败：'+e.message,'error',5600)}finally{if(btn)btn.classList.remove('loading')}}
-async function applyCompletion(ev){if(!_completionPlanId){toast('请先预览','error');return}if(!confirm('确认写入选中字段到飞书主表？\n\n只会补空字段，不会覆盖已有值。'))return;var btn=ev&&ev.currentTarget;if(btn)btn.classList.add('loading');try{var cbs=document.querySelectorAll('#completion-tbody input[type="checkbox"]'),selected=[];cbs.forEach(function(cb){if(cb.checked)selected.push({record_id:cb.dataset.rid,fields:[cb.dataset.field]})});var body={plan_id:_completionPlanId,selected:selected.length?selected:null,confirm:true};var r=await api('POST','/api/completion/apply',body);if(r.success){toast('已写入 '+r.applied_records+' 家公司，补全 '+r.applied_fields+' 个字段','success',5600);refreshData()}else{showErrorModal('写入失败',r.error||'未知错误');toast(r.error||'写入失败','error',5600)}}catch(e){toast('写入失败：'+e.message,'error',5600)}finally{if(btn)btn.classList.remove('loading')}}
-
-var _aiProfilePlanId=null,_aiProfileData=null;
-function parseAICompanies(){return String($('ai-companies')&&$('ai-companies').value||'').split(/[\n,，]/).map(function(x){return x.trim()}).filter(Boolean)}
-function parseAIMaterials(){var text=String($('ai-materials')&&$('ai-materials').value||'').trim();if(!text)return[];var companies=parseAICompanies(),company=companies[0]||'';var m=text.match(/^([^：:\n]{2,40})[：:]([\s\S]+)/);if(m){company=m[1].trim();text=m[2].trim()}return[{company:company,title:'用户粘贴公开资料',url:'',text:text}]}
-function fieldSummary(fields){return Object.keys(fields||{}).map(function(k){var v=fields[k];return'<b>'+esc(k)+'</b>：'+esc(Array.isArray(v)?v.join('、'):v)}).join('<br>')}
-async function previewAIProfiles(ev){var btn=ev&&ev.currentTarget;if(btn)btn.classList.add('loading');try{var body={companies:parseAICompanies(),missing_only:!parseAICompanies().length,include_jd:true,public_materials:parseAIMaterials(),fields:completionFields()};var r=await api('POST','/api/completion/profiles/ai/preview',body);if(!r.success){showErrorModal('AI 画像生成失败',r.error||'未知错误');toast(r.error||'AI 画像生成失败','error',5600);return}_aiProfilePlanId=r.ai_plan_id;_aiProfileData=r;$('ai-profile-status').textContent='计划 '+r.ai_plan_id+' · '+r.summary.companies_generated+' 家 · '+r.model;var rows=r.candidates||[];$('ai-profile-tbody').innerHTML=rows.length?rows.map(function(c){var src=(c.sources||[]).map(function(s){return s.type+(s.field?'/'+s.field:'')+(s.title?'/'+s.title:'')}).join('；');return'<tr><td><input type="checkbox" checked data-company="'+esc(c.company)+'"></td><td class="company">'+esc(c.company)+'</td><td>'+fieldSummary(c.fields)+'</td><td><span class="badge '+(c.confidence==='high'?'bdg-g':c.confidence==='medium'?'bdg-a':'bdg-m')+'">'+esc(c.confidence)+'</span></td><td>'+esc(src||'—')+'</td><td title="'+esc((c.warnings||[]).join('；'))+'">'+esc(c.reasoning||'—')+'</td></tr>'}).join(''):'<tr><td colspan="6" class="center">没有生成画像候选</td></tr>';toast('AI 画像候选生成完成：'+rows.length+' 家','success',5200)}catch(e){toast('AI 画像生成失败：'+e.message,'error',5600)}finally{if(btn)btn.classList.remove('loading')}}
-async function applyAIProfiles(ev){if(!_aiProfilePlanId){toast('请先生成 AI 画像候选','error');return}if(!confirm('确认把选中的 AI 候选保存到本地画像库？\n\n不会写入飞书；后续仍需补齐预览和确认。'))return;var btn=ev&&ev.currentTarget;if(btn)btn.classList.add('loading');try{var selected=[];document.querySelectorAll('#ai-profile-tbody input[type="checkbox"]').forEach(function(cb){if(cb.checked){var c=(_aiProfileData.candidates||[]).find(function(x){return x.company===cb.dataset.company});selected.push({company:cb.dataset.company,fields:Object.keys((c&&c.fields)||{})})}});var r=await api('POST','/api/completion/profiles/ai/apply-local',{ai_plan_id:_aiProfilePlanId,selected:selected.length?selected:null,confirm:true});if(r.success){toast('已保存本地画像：'+r.profiles_changed+' 家，变更 '+r.field_changes+' 字段','success',5600);$('completion-plan-id').textContent='AI 已更新画像库 · '+r.profiles_changed+' 家';}else{showErrorModal('保存本地画像失败',r.error||'未知错误');toast(r.error||'保存失败','error',5600)}}catch(e){toast('保存失败：'+e.message,'error',5600)}finally{if(btn)btn.classList.remove('loading')}}
-
-/* ---------- SSE ---------- */
-function initSSE(){var es=new EventSource('/api/stream');es.onmessage=function(e){try{JSON.parse(e.data)}catch(_){return}};es.onerror=function(){}}
-
 /* ---------- 初始化 ---------- */
 applyTheme(localStorage.getItem('radar_theme')||'light');
 (function(){var saved=localStorage.getItem('radar_page')||'page-dashboard';var el=document.querySelector('.sidebar a[data-page="'+saved+'"]');el?navTo(el):navTo('page-dashboard')})();
 loadConfigStatus(true);
 document.addEventListener('mousemove',function(e){var c=e.target.closest('.card');if(!c)return;var r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')});
-initSSE();load().catch(function(e){toast('加载失败：'+e.message,'error',5000)});
+load().catch(function(e){toast('加载失败：'+e.message,'error',5000)});
 setInterval(function(){if($('page-dashboard').classList.contains('active'))load().catch(function(){})},60000);
 </script>
 </body>
