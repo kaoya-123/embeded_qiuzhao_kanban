@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 title 嵌入式校招雷达 - 安装依赖
 cd /d D:\AI学习\embedded-job-radar
