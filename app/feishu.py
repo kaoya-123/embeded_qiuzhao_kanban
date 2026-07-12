@@ -328,6 +328,16 @@ def get_main_stats():
             ctypes[c] += 1
     recent = [r for r in rows if r.get("投递时间") and r.get("投递时间") != 0]
     recent.sort(key=lambda f: f.get("投递时间", 0) or 0, reverse=True)
+    # 截止时间独立于投递状态：只要填了截止时间的都列出
+    deadlines_raw = [r for r in rows if r.get("投递截止时间") and r.get("投递截止时间") != 0]
+    deadlines_raw.sort(key=lambda f: f.get("投递截止时间", 0) or 0)
+    deadlines = [
+        {"company": f.get("公司名称", ""),
+         "job": f.get("秋招岗位", ""),
+         "deadline": f.get("投递截止时间", 0),
+         "progress": f.get("进展", [])}
+        for f in deadlines_raw
+    ]
     return {
         "total_companies": len(rows),
         "exam_count": sum(exam_counter.values()),
@@ -335,6 +345,7 @@ def get_main_stats():
         "offer_count": sum(offer_counter.values()),
         "directions": directions.most_common(15),
         "ctypes": ctypes.most_common(15),
+        "deadlines": deadlines,
         "recent": [
             {"company": f.get("公司名称", ""),
              "type": (f.get("公司/行业类型") or [""])[0] if f.get("公司/行业类型") else "",

@@ -312,9 +312,9 @@ function renderDashboard(d){
   if(d.error)toast((d.stale?'缓存：':'')+d.error,'error',5600);
   var recent=arr(d.main.recent),appliedMap=buildAppliedMap(recent);
   var dated=[];
-  (d.main.recent||[]).forEach(function(r){
+  (d.main.deadlines||[]).forEach(function(r){
     var w=analyze({deadline:r.deadline});
-    if(w.level==='dated'){dated.push({company:r.company,job:r.job,deadline:r.deadline,window:w})}
+    if(w.level==='dated'||w.level==='closed'){dated.push({company:r.company,job:r.job,deadline:r.deadline,window:w})}
   });
   dated.sort(function(a,b){return a.window.rank-b.window.rank});
   $('last-updated').textContent=(d.now||'')+(d.stale?' · 缓存':'');
