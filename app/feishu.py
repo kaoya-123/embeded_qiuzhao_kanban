@@ -305,6 +305,13 @@ def list_fields(table_id):
 
 
 # ── 看板数据组装 ─────────────────────────────────────
+def _unwrap_url(val):
+    """飞书链接字段返回 {'link':'...','text':'...'}，这里提取纯 URL 字符串。"""
+    if isinstance(val, dict):
+        return val.get("link") or val.get("text") or str(val)
+    return val
+
+
 def get_main_stats():
     recs = list_records(MAIN_TABLE_ID)
     rows = [r["fields"] for r in recs if r.get("fields", {}).get("公司名称")]
@@ -352,7 +359,7 @@ def get_main_stats():
              "dir": f.get("嵌入式方向", []),
              "progress": f.get("进展", []),
              "job": f.get("秋招岗位", ""),
-             "url": f.get("投递链接"),
+             "url": _unwrap_url(f.get("投递链接")),
              "deadline": f.get("投递截止时间", 0),
              "apply_date": f.get("投递时间", ""),
              "exam_date": f.get("机考时间", ""),
